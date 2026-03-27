@@ -417,7 +417,11 @@ class _EmojiPickerState extends State<EmojiPicker> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController()..addListener(_handleControllerUpdate);
+    _controller = TextEditingController();
+    final store = StoreService.to.requireStore;
+    final query = EmojiAutocompleteQuery(_controller.text);
+    _viewModel = EmojiAutocompleteView.init(store: store, query: query);
+    _controller.addListener(_handleControllerUpdate);
     ever(StoreService.to.currentStore, (_) => _onStoreChanged());
   }
 
