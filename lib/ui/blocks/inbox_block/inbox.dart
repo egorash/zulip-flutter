@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../generated/l10n/zulip_localizations.dart';
+import '../../../get/services/domains/channels/channels_service.dart';
 import '../../../get/services/store_service.dart';
 import '../../../model/narrow.dart';
 import '../../../model/recent_dm_conversations.dart';
@@ -9,120 +10,72 @@ import '../../../model/unreads.dart';
 import '../../utils/page.dart';
 import '../../widgets/sticky_header.dart';
 
+import 'inbox_controller.dart';
 import 'inbox_section_data_model.dart';
 import 'widgets/all_dms_section.dart';
 import 'widgets/inbox_strean_section.dart';
 
-class InboxPageBody extends StatefulWidget {
+class InboxPageBody extends StatelessWidget {
   const InboxPageBody({super.key});
 
   @override
-  State<InboxPageBody> createState() => InboxPageState();
+  Widget build(BuildContext context) {
+    return GetBuilder<InboxController>(
+      init: InboxController(),
+      builder: (controller) {
+        return Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final unreadsModel = controller.unreadsModel;
+          final recentDmConversationsModel =
+              controller.recentDmConversationsModel;
+
+          if (unreadsModel == null || recentDmConversationsModel == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          return _InboxContent(
+            controller: controller,
+            unreadsModel: unreadsModel,
+            recentDmConversationsModel: recentDmConversationsModel,
+          );
+        });
+      },
+    );
+  }
 }
 
-/// The interface for the state of an [InboxPageBody].
-abstract class InboxPageStateTemplate extends State<InboxPageBody> {
-  bool get allDmsCollapsed;
-  set allDmsCollapsed(bool value);
+class _InboxContent extends StatelessWidget {
+  final InboxController controller;
+  final Unreads unreadsModel;
+  final RecentDmConversationsView recentDmConversationsModel;
 
-  void collapseStream(int streamId);
-  void uncollapseStream(int streamId);
-}
-
-class InboxPageState extends State<InboxPageBody>
-    implements InboxPageStateTemplate {
-  Unreads? unreadsModel;
-  RecentDmConversationsView? recentDmConversationsModel;
-
-  @override
-  bool get allDmsCollapsed => _allDmsCollapsed;
-  bool _allDmsCollapsed = false;
-  @override
-  set allDmsCollapsed(bool value) {
-    setState(() {
-      _allDmsCollapsed = value;
-    });
-  }
-
-  Set<int> get collapsedStreamIds => _collapsedStreamIds;
-  final Set<int> _collapsedStreamIds = {};
-  @override
-  void collapseStream(int streamId) {
-    setState(() {
-      _collapsedStreamIds.add(streamId);
-    });
-  }
-
-  @override
-  void uncollapseStream(int streamId) {
-    setState(() {
-      _collapsedStreamIds.remove(streamId);
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
-    _onStoreChanged();
-  }
-
-  @override
-  void dispose() {
-    unreadsModel?.removeListener(_modelChanged);
-    recentDmConversationsModel?.removeListener(_modelChanged);
-    super.dispose();
-  }
-
-  void _onStoreChanged() {
-    final newStore = StoreService.to.requireStore;
-    unreadsModel?.removeListener(_modelChanged);
-    unreadsModel = newStore.unreads..addListener(_modelChanged);
-    recentDmConversationsModel?.removeListener(_modelChanged);
-    recentDmConversationsModel = newStore.recentDmConversationsView
-      ..addListener(_modelChanged);
-  }
-
-  void _modelChanged() {
-    setState(() {
-      // Much of the state lives in [unreadsModel] and
-      // [recentDmConversationsModel].
-      // This method was called because one of those just changed.
-      //
-      // We also update some state that lives locally: we reset a collapsible
-      // row's collapsed state when it's cleared of unreads.
-      // TODO(perf) handle those updates efficiently
-      collapsedStreamIds.removeWhere(
-        (streamId) => !unreadsModel!.streams.containsKey(streamId),
-      );
-      if (unreadsModel!.dms.isEmpty) {
-        allDmsCollapsed = false;
-      }
-    });
-  }
+  const _InboxContent({
+    required this.controller,
+    required this.unreadsModel,
+    required this.recentDmConversationsModel,
+  });
 
   @override
   Widget build(BuildContext context) {
     final zulipLocalizations = ZulipLocalizations.of(context);
     final store = StoreService.to.requireStore;
-    final subscriptions = store.subscriptions;
+    final subscriptions = ChannelsService.to.subscriptions;
 
-    // TODO(#1065) make an incrementally-updated view-model for InboxPage
     final sections = <InboxSectionData>[];
 
-    // TODO efficiently include DM conversations that aren't recent enough
-    //   to appear in recentDmConversationsView, but still have unreads in
-    //   unreadsModel.
     final dmItems = <(DmNarrow, int, bool)>[];
     int allDmsCount = 0;
     bool allDmsHasMention = false;
-    for (final dmNarrow in recentDmConversationsModel!.sorted) {
-      final countInNarrow = unreadsModel!.countInDmNarrow(dmNarrow);
+    for (final dmNarrow in recentDmConversationsModel.sorted) {
+      final countInNarrow = unreadsModel.countInDmNarrow(dmNarrow);
       if (countInNarrow == 0) {
         continue;
       }
-      final hasMention = unreadsModel!.dms[dmNarrow]!.any(
-        (messageId) => unreadsModel!.mentions.contains(messageId),
+      final hasMention = unreadsModel.dms[dmNarrow]!.any(
+        (messageId) => unreadsModel.mentions.contains(messageId),
       );
       if (hasMention) allDmsHasMention = true;
       dmItems.add((dmNarrow, countInNarrow, hasMention));
@@ -133,26 +86,17 @@ class InboxPageState extends State<InboxPageBody>
     }
 
     final sortedUnreadStreams =
-        unreadsModel!.streams.entries
-            // Filter out any straggling unreads in unsubscribed streams.
-            // There won't normally be any, but it happens with certain infrequent
-            // state changes, typically for less than a few hundred milliseconds.
-            // See [Unreads].
-            //
-            // Also, we want to depend on the subscription data for things like
-            // choosing the stream icon.
+        unreadsModel.streams.entries
             .where((entry) => subscriptions.containsKey(entry.key))
             .toList()
           ..sort((a, b) {
             final subA = subscriptions[a.key]!;
             final subB = subscriptions[b.key]!;
 
-            // TODO "pin" icon on the stream row? dividers in the list?
             if (subA.pinToTop != subB.pinToTop) {
               return subA.pinToTop ? -1 : 1;
             }
 
-            // TODO(i18n) something like JS's String.prototype.localeCompare
             return subA.name.toLowerCase().compareTo(subB.name.toLowerCase());
           });
 
@@ -164,7 +108,7 @@ class InboxPageState extends State<InboxPageBody>
         if (!store.isTopicVisible(streamId, topic)) continue;
         final countInTopic = messageIds.length;
         final hasMention = messageIds.any(
-          (messageId) => unreadsModel!.mentions.contains(messageId),
+          (messageId) => unreadsModel.mentions.contains(messageId),
         );
         if (hasMention) streamHasMention = true;
         topicItems.add(
@@ -197,14 +141,12 @@ class InboxPageState extends State<InboxPageBody>
 
     if (sections.isEmpty) {
       return PageBodyEmptyContentPlaceholder(
-        // TODO(#315) add e.g. "You might be interested in recent conversations."
         header: zulipLocalizations.inboxEmptyPlaceholderHeader,
         message: zulipLocalizations.inboxEmptyPlaceholderMessage,
       );
     }
 
     return SafeArea(
-      // horizontal insets
       child: StickyHeaderListView.builder(
         itemCount: sections.length,
         itemBuilder: (context, index) {
@@ -213,15 +155,15 @@ class InboxPageState extends State<InboxPageBody>
             case AllDmsSectionData():
               return AllDmsSection(
                 data: section,
-                collapsed: allDmsCollapsed,
-                pageState: this,
+                collapsed: controller.allDmsCollapsed,
+                pageState: controller,
               );
             case StreamSectionData(:var streamId):
-              final collapsed = collapsedStreamIds.contains(streamId);
+              final collapsed = controller.isStreamCollapsed(streamId);
               return InboxStreamSection(
                 data: section,
                 collapsed: collapsed,
-                pageState: this,
+                pageState: controller,
               );
           }
         },

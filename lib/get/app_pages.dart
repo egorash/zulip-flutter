@@ -1,6 +1,14 @@
 import 'package:get/get.dart';
+import '../notifications/push_notification_service.dart';
+import 'services/account_service.dart';
+import 'services/domains/channels/channels_service.dart';
+import 'services/domains/presence/presence_service.dart';
+import 'services/domains/settings/settings_service.dart';
+import 'services/domains/typing/typing_service.dart';
+import 'services/domains/unreads/unreads_service.dart';
+import 'services/domains/users/users_service.dart';
+import 'services/global_service.dart';
 import 'services/store_service.dart';
-import '../ui/utils/store.dart';
 import '../model/narrow.dart';
 import '../ui/blocks/home_block/home_bindings.dart';
 import '../ui/blocks/login_block/login_bindings.dart';
@@ -47,12 +55,21 @@ class AppRoutes {
 
 class AppPages {
   static void _setCurrentAccount() {
-    final globalStore = GlobalStoreWidget.of(Get.context!);
-    final accountId = globalStore.lastVisitedAccount?.id ?? 0;
-    if (accountId > 0) {
-      StoreService.to.setGlobalStore(globalStore);
+    final args = Get.arguments as Map<String, dynamic>?;
+    final accountId = args?['accountId'] as int?;
 
+    final globalStore = GlobalService.to.globalStore;
+    if (globalStore != null) {
+      StoreService.to.setGlobalStore(globalStore);
+    }
+
+    if (accountId != null && accountId > 0) {
       StoreService.to.setCurrentAccount(accountId);
+    } else if (globalStore != null) {
+      final lastAccountId = globalStore.lastVisitedAccount?.id;
+      if (lastAccountId != null && lastAccountId > 0) {
+        StoreService.to.setCurrentAccount(lastAccountId);
+      }
     }
   }
 
@@ -62,7 +79,7 @@ class AppPages {
       page: () => const AddAccountPage(),
       binding: LoginBinding(),
     ),
-    GetPage(name: AppRoutes.login, page: () => LoginPage()),
+    GetPage<dynamic>(name: AppRoutes.login, page: () => const LoginPage()),
     GetPage<dynamic>(
       name: AppRoutes.home,
       page: () {
@@ -141,6 +158,17 @@ class AppPages {
 class InitialBinding extends Bindings {
   @override
   void dependencies() {
+    Get.lazyPut<GlobalService>(() => GlobalService());
+    Get.lazyPut<AccountService>(() => AccountService());
+    Get.lazyPut<UnreadsService>(() => UnreadsService());
+    Get.lazyPut<PushNotificationService>(() => PushNotificationService());
+
+    Get.lazyPut<UsersService>(() => UsersService());
+    Get.lazyPut<PresenceService>(() => PresenceService());
+    Get.lazyPut<ChannelsService>(() => ChannelsService());
+    Get.lazyPut<TypingService>(() => TypingService());
+    Get.lazyPut<SettingsService>(() => SettingsService());
+
     Get.lazyPut<StoreService>(() => StoreService());
     Get.lazyPut<LoginController>(() => LoginController());
     Get.lazyPut<HomeController>(() => HomeController());

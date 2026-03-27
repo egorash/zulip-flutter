@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 
 import '../api/model/model.dart';
 import '../generated/l10n/zulip_localizations.dart';
+import '../get/services/global_service.dart';
 import '../host/notifications.dart';
 import '../log.dart';
 import '../model/binding.dart';
@@ -17,7 +18,6 @@ import '../ui/widgets/dialog.dart';
 import '../ui/blocks/home_block/home.dart';
 import '../ui/blocks/message_list_block/message_list_block.dart';
 import '../ui/utils/page.dart';
-import '../ui/utils/store.dart';
 
 NotificationPigeonApi get _notifPigeonApi =>
     ZulipBinding.instance.notificationPigeonApi;
@@ -52,31 +52,46 @@ class NotificationOpenService {
     try {
       switch (defaultTargetPlatform) {
         case TargetPlatform.iOS:
-          // On iOS, the notification tap that causes a launch of the app is
-          // handled a bit differently than on Android where all types of
-          // notification tap events are served via the
-          // `notificationTapEventsStream`.
-          _notifDataFromLaunch = await _notifPigeonApi
-              .getNotificationDataFromLaunch();
+          try {
+            _notifDataFromLaunch = await _notifPigeonApi
+                .getNotificationDataFromLaunch();
+          } catch (e) {
+            debugPrint(
+              'NotificationOpenService: getNotificationDataFromLaunch failed: $e',
+            );
+          }
 
-          _notifPigeonApi.notificationTapEventsStream().listen(
-            _navigateForNotification,
-          );
+          _setupNotificationTapListener();
 
         case TargetPlatform.android:
-          _notifPigeonApi.notificationTapEventsStream().listen(
-            _navigateForNotification,
-          );
+          _setupNotificationTapListener();
 
         case TargetPlatform.fuchsia:
         case TargetPlatform.linux:
         case TargetPlatform.macOS:
         case TargetPlatform.windows:
-          // Do nothing; we don't offer notifications on these platforms.
           break;
       }
     } finally {
-      _initializedSignal!.complete();
+      _initializedSignal?.complete();
+    }
+  }
+
+  void _setupNotificationTapListener() {
+    try {
+      final stream = _notifPigeonApi.notificationTapEventsStream();
+      stream.listen(
+        _navigateForNotification,
+        onError: (Object e, StackTrace st) {
+          debugPrint(
+            'NotificationOpenService: notificationTapEvents stream error: $e',
+          );
+        },
+      );
+    } catch (e) {
+      debugPrint(
+        'NotificationOpenService: notificationTapEventsStream failed: $e',
+      );
     }
   }
 
@@ -112,7 +127,8 @@ class NotificationOpenService {
     required BuildContext context,
     required NotificationOpenPayload data,
   }) {
-    final globalStore = GlobalStoreWidget.of(context);
+    final globalStore = GlobalService.to.globalStore;
+    if (globalStore == null) return null;
 
     final account = globalStore.accounts.firstWhereOrNull(
       (account) =>
