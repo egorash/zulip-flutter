@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:path/path.dart' as path;
 import 'package:super_clipboard/super_clipboard.dart';
 
@@ -416,7 +417,8 @@ class _ContentInputState extends State<ContentInput> {
               Expanded(
                 child: Focus(
                   onKeyEvent: (FocusNode node, KeyEvent event) {
-                    if (!(Platform.isAndroid || Platform.isIOS)) {
+                    if (!(Platform.isAndroid ||
+                        (Platform.isIOS && Get.context!.isPhone))) {
                       if (event is KeyDownEvent) {
                         final hardwareKeyboard = HardwareKeyboard.instance;
                         if (event.logicalKey == LogicalKeyboardKey.keyV &&
