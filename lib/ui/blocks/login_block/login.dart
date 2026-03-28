@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_login/flutter_login.dart';
 import 'package:get/get.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
-import '../../../get/services/store_service.dart';
 import '../../values/constants.dart';
 import '../../utils/page.dart';
-import '../../widgets/image.dart';
 import 'login_controller.dart';
 
 class _LoginSequenceRoute extends MaterialWidgetRoute<void> {
@@ -103,12 +101,11 @@ class LoginPage extends GetView<LoginController> {
                 alignment: Alignment.topCenter,
                 height: 100,
                 width: 100,
-
-                child: RealmContentNetworkImage(
-                  StoreService.to.requireStore.resolvedRealmIcon,
-                  filterQuality: FilterQuality.medium,
-                  fit: BoxFit.cover,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
                 ),
+                clipBehavior: Clip.hardEdge,
+                child: Image.asset('assets/app-icons/zulip-combined.png'),
               ),
             ),
             SizedBox(
@@ -122,6 +119,7 @@ class LoginPage extends GetView<LoginController> {
                     messages: LoginMessages(
                       loginButton: 'Войти',
                       userHint: 'Почта',
+
                       passwordHint: 'Пароль',
                       flushbarTitleError: 'Ошибка',
                       flushbarTitleSuccess: 'Успешно',
@@ -129,6 +127,7 @@ class LoginPage extends GetView<LoginController> {
                     title: 'Вход в систему',
                     hideForgotPasswordButton: true,
                     hideProvidersTitle: true,
+
                     theme: LoginTheme(
                       buttonStyle: TextStyle(
                         fontWeight: FontWeight.w600,
@@ -143,12 +142,14 @@ class LoginPage extends GetView<LoginController> {
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
                       ),
+
                       cardTheme: CardTheme(elevation: 0),
                       textFieldStyle: TextStyle(fontWeight: FontWeight.w600),
                       pageColorLight: Colors.transparent,
                       pageColorDark: Colors.transparent,
                       cardTopPosition: 400,
                     ),
+
                     onLogin: (data) async {
                       await controller.submitCredentials(
                         username: data.name,
@@ -162,7 +163,7 @@ class LoginPage extends GetView<LoginController> {
                       return null;
                     },
                     validateUserImmediately: false,
-                    userType: LoginUserType.name,
+                    userType: LoginUserType.email,
                     userValidator: (value) =>
                         value?.isNotEmpty == true ? null : 'Введите почту',
                     passwordValidator: (value) =>

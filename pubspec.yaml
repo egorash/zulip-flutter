@@ -126,6 +126,7 @@ flutter:
     - assets/Source_Code_Pro/LICENSE.md
     - assets/Source_Sans_3/LICENSE.md
     - assets/fonts/
+    - assets/app-icons/zulip-combined.png
 
   fonts:
     - family: GoogleSans
