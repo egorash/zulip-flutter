@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as path;
+import 'package:super_clipboard/super_clipboard.dart';
 
 import '../../../../../api/exception.dart';
 import '../../../../../api/model/model.dart';
@@ -276,7 +277,7 @@ class _ContentInputState extends State<ContentInput> {
     }
   }
 
-  void _handlePress(
+  void _handleAddIconPress(
     BuildContext context,
     Future<Iterable<FileToUpload>> Function(BuildContext context) getFiles,
   ) async {
@@ -296,6 +297,48 @@ class _ContentInputState extends State<ContentInput> {
       files: files,
       shouldRequestFocus: true,
     );
+  }
+
+  Future<KeyEventResult> _interceptInsering() async {
+    final clipboard = SystemClipboard.instance;
+    if (clipboard == null) {
+      return KeyEventResult.ignored;
+    }
+    final reader = await clipboard.read();
+    if (reader.canProvide(Formats.plainText)) {
+      return KeyEventResult.ignored;
+    } else if (reader.canProvide(Formats.png) ||
+        reader.canProvide(Formats.jpeg)) {
+      final isPng = reader.canProvide(Formats.png);
+      reader.getFile(isPng ? Formats.png : Formats.jpeg, (file) {
+        // Do something with the PNG image
+        final img = file.getStream();
+
+        widget.controller.uploadFiles(
+          context: context,
+          files: [
+            FileToUpload(
+              content: img,
+              length: file.fileSize ?? 0,
+              filename: file.fileName ?? 'image.${isPng ? 'png' : 'jpeg'}',
+              mimeType: isPng ? 'image/png' : 'image/jpeg',
+            ),
+          ],
+          shouldRequestFocus: true,
+        );
+      });
+
+      return KeyEventResult.handled;
+    }
+    //if (reader.hasValue(Formats.png)) {
+    // final pngFile = await reader.read(Formats.png);
+    // final bytes = await pngFile?.getBytes();
+    // if (bytes != null) {
+    //   //widget.onImagePasted(bytes);
+    // }
+    //}
+
+    return KeyEventResult.ignored;
   }
 
   @override
@@ -327,7 +370,10 @@ class _ContentInputState extends State<ContentInput> {
                       ),
                       title: Text('Файл'),
                       onPressed: () {
-                        _handlePress(context, ComposeBoxService.pickFiles);
+                        _handleAddIconPress(
+                          context,
+                          ComposeBoxService.pickFiles,
+                        );
                       },
                     ),
                     FocusedMenuItem(
@@ -337,20 +383,26 @@ class _ContentInputState extends State<ContentInput> {
                       ),
                       title: Text('Фото или видео'),
                       onPressed: () {
-                        _handlePress(context, ComposeBoxService.pickMedia);
+                        _handleAddIconPress(
+                          context,
+                          ComposeBoxService.pickMedia,
+                        );
                       },
                     ),
                     if (!Platform.isMacOS && !Platform.isWindows)
-                    FocusedMenuItem(
-                      trailingIcon: Icon(
-                        ZulipIcons.camera,
-                        color: designVariables.foreground.withFadedAlpha(0.5),
+                      FocusedMenuItem(
+                        trailingIcon: Icon(
+                          ZulipIcons.camera,
+                          color: designVariables.foreground.withFadedAlpha(0.5),
+                        ),
+                        title: Text('Камера'),
+                        onPressed: () {
+                          _handleAddIconPress(
+                            context,
+                            ComposeBoxService.openCamera,
+                          );
+                        },
                       ),
-                      title: Text('Камера'),
-                      onPressed: () {
-                        _handlePress(context, ComposeBoxService.openCamera);
-                      },
-                    ),
                   ],
                   child: SizedBox(
                     height: composeButtonSize,
@@ -367,7 +419,12 @@ class _ContentInputState extends State<ContentInput> {
                     if (!(Platform.isAndroid || Platform.isIOS)) {
                       if (event is KeyDownEvent) {
                         final hardwareKeyboard = HardwareKeyboard.instance;
-                        if ((hardwareKeyboard.isControlPressed ||
+                        if (event.logicalKey == LogicalKeyboardKey.keyV &&
+                            hardwareKeyboard.isMetaPressed) {
+                          _interceptInsering().then((value) {
+                            return value;
+                          });
+                        } else if ((hardwareKeyboard.isControlPressed ||
                                 hardwareKeyboard.isMetaPressed) &&
                             event.logicalKey == LogicalKeyboardKey.enter) {
                           widget.controller.content.text += '\n';

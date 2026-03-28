@@ -1,30 +1,28 @@
 PODS:
-  - CocoaAsyncSocket (7.6.5)
   - FlutterMacOS (1.0.0)
-  - patrol (0.0.1):
-    - CocoaAsyncSocket (~> 7.6)
-    - Flutter
+  - irondash_engine_context (0.0.1):
+    - FlutterMacOS
+  - super_native_extensions (0.0.1):
     - FlutterMacOS
 
 DEPENDENCIES:
   - FlutterMacOS (from `Flutter/ephemeral`)
-  - patrol (from `Flutter/ephemeral/.symlinks/plugins/patrol/darwin`)
-
-SPEC REPOS:
-  trunk:
-    - CocoaAsyncSocket
+  - irondash_engine_context (from `Flutter/ephemeral/.symlinks/plugins/irondash_engine_context/macos`)
+  - super_native_extensions (from `Flutter/ephemeral/.symlinks/plugins/super_native_extensions/macos`)
 
 EXTERNAL SOURCES:
   FlutterMacOS:
     :path: Flutter/ephemeral
-  patrol:
-    :path: Flutter/ephemeral/.symlinks/plugins/patrol/darwin
+  irondash_engine_context:
+    :path: Flutter/ephemeral/.symlinks/plugins/irondash_engine_context/macos
+  super_native_extensions:
+    :path: Flutter/ephemeral/.symlinks/plugins/super_native_extensions/macos
 
 SPEC CHECKSUMS:
-  CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
-  patrol: cea8074f183a2a4232d0ebd10569ae05149ada42
+  irondash_engine_context: 893c7d96d20ce361d7e996f39d360c4c2f9869ba
+  super_native_extensions: c2795d6d9aedf4a79fae25cb6160b71b50549189
 
-PODFILE CHECKSUM: bd6842df0dd91920553fbfacd50c921f7e63a62f
+PODFILE CHECKSUM: 2423b9e9518377f0fe5efc4dd489074a146c1bff
 
 COCOAPODS: 1.16.2
