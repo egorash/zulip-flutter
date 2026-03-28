@@ -741,7 +741,7 @@ class PerAccountStore extends PerAccountStoreBase
       recentDmConversationsView: RecentDmConversationsView(
         core: core,
         initial: initialSnapshot.recentPrivateConversations,
-      ),
+      )..prefetchLastMessages(),
       recentSenders: RecentSenders(),
     );
   }
@@ -838,7 +838,6 @@ class PerAccountStore extends PerAccountStoreBase
 
   //|//////////////////////////////
   // Streams, topics, and stuff about them.
-
 
   @override
   ChannelStore get channelStore => _channels;

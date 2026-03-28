@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:html/parser.dart';
 
+import '../../../../api/model/model.dart';
 import '../../../../get/services/domains/users/users_service.dart';
+import '../../../../get/services/store_service.dart';
 import '../../../../model/narrow.dart';
 import '../../../animations.dart';
 import '../../../values/icons.dart';
@@ -14,11 +18,13 @@ class RecentDmConversationsItem extends StatelessWidget {
     super.key,
     required this.narrow,
     required this.unreadCount,
+    required this.lastMessage,
     required this.onDmSelect,
   });
 
   final DmNarrow narrow;
   final int unreadCount;
+  final Rx<Message?> lastMessage;
   final OnDmSelectCallback onDmSelect;
 
   static const double _avatarSize = 48;
@@ -132,8 +138,12 @@ class RecentDmConversationsItem extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         title,
                       ),
-                      // TODO Добавить последнее сообщение чата
-                      Text('', maxLines: 2, overflow: TextOverflow.ellipsis),
+                      Obx(
+                        () => _buildMessagePreview(
+                          context,
+                          lastMessage.value?.content,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -152,6 +162,44 @@ class RecentDmConversationsItem extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  String stripHtml(String html) {
+    final document = parse(html);
+    return document.body?.text.trim() ?? '';
+  }
+
+  Widget _buildMessagePreview(BuildContext context, String? preview) {
+    final designVariables = DesignVariables.of(context);
+    final store = requirePerAccountStore();
+
+    if (preview == null) {
+      return Text(
+        '',
+        style: TextStyle(fontSize: 15, color: Colors.red),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    final isFromMe = lastMessage.value!.senderId == store.selfUserId;
+    final prefix = isFromMe ? 'Вы: ' : '';
+    final content = stripHtml(preview.replaceAll(RegExp(r'\s+'), ' ').trim());
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4.0),
+      child: Text(
+        '$prefix$content',
+        style: TextStyle(
+          fontSize: 13,
+          fontFamily: 'Arial',
+          fontWeight: FontWeight.w200,
+          color: designVariables.labelMenuButton.withValues(alpha: 0.5),
+        ),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }

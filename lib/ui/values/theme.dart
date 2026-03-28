@@ -62,7 +62,7 @@ ThemeData zulipThemeData(BuildContext context) {
     brightness: brightness,
     typography: zulipTypography(context),
     extensions: themeExtensions,
-    fontFamily: 'GoogleSansBold',
+    fontFamily: 'Arial',
     // Use "standard" visual density (the default for mobile platforms)
     // on all platforms.  That helps the desktop builds of the app be faithful
     // previews of how the app behaves on mobile -- which is the only purpose
@@ -92,7 +92,7 @@ ThemeData zulipThemeData(BuildContext context) {
         inherit: false,
         color: designVariables.title,
         fontSize: 20,
-        fontFamily: 'GoogleSansBold',
+        fontFamily: 'Arial',
         textBaseline: localizedTextBaseline(context),
         leadingDistribution: TextLeadingDistribution.even,
         decoration: TextDecoration.none,
