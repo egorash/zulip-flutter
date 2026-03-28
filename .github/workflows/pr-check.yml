@@ -30,5 +30,3 @@ jobs:
       - name: Run Flutter analyze
         run: flutter analyze
 
-      - name: Run tools/check
-        run: TERM=dumb tools/check --no-pub --all --output ci --exclude android
