@@ -78,9 +78,14 @@ class MessageListOutboxMessageItem extends MessageListMessageBaseItem {
     this.message, {
     required super.showSender,
     required super.isLastInBlock,
-  }) : content = ZulipContent(nodes: [
-    ParagraphNode(links: null, nodes: [TextNode(message.contentMarkdown)]),
-  ]);
+  }) : content = ZulipContent(
+         nodes: [
+           ParagraphNode(
+             links: null,
+             nodes: [TextNode(message.contentMarkdown)],
+           ),
+         ],
+       );
 }
 
 /// The status of outstanding or recent fetch requests from a [MessageListView].
@@ -106,6 +111,9 @@ enum FetchingStatus {
 ///
 /// This comprises much of the guts of [MessageListView].
 mixin _MessageSequence {
+  /// The ID of the current user.
+  int get selfUserId;
+
   /// Whether each message should have its own recipient header,
   /// even if it's in the same conversation as the previous message.
   ///
@@ -227,8 +235,11 @@ mixin _MessageSequence {
   int middleItem = 0;
 
   int _findMessageWithId(int messageId) {
-    return binarySearchByKey(messages, messageId,
-      (message, messageId) => message.id.compareTo(messageId));
+    return binarySearchByKey(
+      messages,
+      messageId,
+      (message, messageId) => message.id.compareTo(messageId),
+    );
   }
 
   int findItemWithMessageId(int messageId) {
@@ -250,10 +261,12 @@ mixin _MessageSequence {
     switch (item) {
       case MessageListRecipientHeaderItem(:var message):
       case MessageListDateSeparatorItem(:var message):
-        if (message.id == null)                  return 1;
+        if (message.id == null) return 1;
         return message.id! <= messageId ? -1 : 1;
-      case MessageListMessageItem(:var message): return message.id.compareTo(messageId);
-      case MessageListOutboxMessageItem():       return 1;
+      case MessageListMessageItem(:var message):
+        return message.id.compareTo(messageId);
+      case MessageListOutboxMessageItem():
+        return 1;
     }
   }
 
@@ -264,9 +277,14 @@ mixin _MessageSequence {
     contents[index] = content;
 
     final itemIndex = findItemWithMessageId(message.id);
-    assert(itemIndex > -1
-      && items[itemIndex] is MessageListMessageItem
-      && identical((items[itemIndex] as MessageListMessageItem).message, message));
+    assert(
+      itemIndex > -1 &&
+          items[itemIndex] is MessageListMessageItem &&
+          identical(
+            (items[itemIndex] as MessageListMessageItem).message,
+            message,
+          ),
+    );
     (items[itemIndex] as MessageListMessageItem).content = content;
   }
 
@@ -306,7 +324,8 @@ mixin _MessageSequence {
       }
       messages[target] = messages[candidate];
       contents[target] = contents[candidate];
-      target++; candidate++;
+      target++;
+      candidate++;
     }
     if (candidate == middleMessage) middleMessage = target;
     messages.length = target;
@@ -336,10 +355,13 @@ mixin _MessageSequence {
     } else {
       final middleMessageId = messages[middleMessage].id;
       middleMessage -= messagesToRemoveById
-        .where((id) => id < middleMessageId).length;
+          .where((id) => id < middleMessageId)
+          .length;
     }
     assert(contents.length == messages.length);
-    messages.removeWhere((message) => messagesToRemoveById.contains(message.id));
+    messages.removeWhere(
+      (message) => messagesToRemoveById.contains(message.id),
+    );
     contents.removeWhere((content) => contentToRemove.contains(content));
     assert(contents.length == messages.length);
     _reprocessAll();
@@ -355,8 +377,10 @@ mixin _MessageSequence {
     final oldLength = messages.length;
     assert(contents.length == messages.length);
     messages.insertAll(index, toInsert);
-    contents.insertAll(index, toInsert.map(
-      (message) => parseMessageContent(message)));
+    contents.insertAll(
+      index,
+      toInsert.map((message) => parseMessageContent(message)),
+    );
     assert(contents.length == messages.length);
     if (index <= middleMessage) {
       middleMessage += messages.length - oldLength;
@@ -436,17 +460,19 @@ mixin _MessageSequence {
   ///
   /// The caller must ensure that [prevMessage] and all messages before it
   /// have been processed.
-  void _addItemsForMessage(MessageBase message, {
+  void _addItemsForMessage(
+    MessageBase message, {
     required bool shouldSetMiddleItem,
     required MessageBase? prevMessage,
     required MessageListMessageBaseItem Function(bool canShareSender) buildItem,
   }) {
+    final bool isFromSelfUser = message.senderId == selfUserId;
     final bool canShareSender;
-    if (
-      prevMessage == null
-      || oneMessagePerBlock
-      || !haveSameRecipient(prevMessage, message)
-    ) {
+    if (isFromSelfUser) {
+      canShareSender = true;
+    } else if (prevMessage == null ||
+        oneMessagePerBlock ||
+        !haveSameRecipient(prevMessage, message)) {
       items.add(MessageListRecipientHeaderItem(message));
       canShareSender = false;
     } else {
@@ -485,11 +511,17 @@ mixin _MessageSequence {
     final message = messages[index];
     final content = contents[index];
 
-    _addItemsForMessage(message,
+    _addItemsForMessage(
+      message,
       shouldSetMiddleItem: index == middleMessage,
       prevMessage: prevMessage,
       buildItem: (bool canShareSender) => MessageListMessageItem(
-        message, content, showSender: !canShareSender, isLastInBlock: true));
+        message,
+        content,
+        showSender: !canShareSender,
+        isLastInBlock: true,
+      ),
+    );
   }
 
   /// Append to [items] based on the index-th message in [outboxMessages].
@@ -497,17 +529,23 @@ mixin _MessageSequence {
   /// All [messages] and previous messages in [outboxMessages] must already have
   /// been processed.
   void _processOutboxMessage(int index) {
-    final prevMessage = index == 0 ? messages.lastOrNull
-                                   : outboxMessages[index - 1];
+    final prevMessage = index == 0
+        ? messages.lastOrNull
+        : outboxMessages[index - 1];
     final message = outboxMessages[index];
 
-    _addItemsForMessage(message,
+    _addItemsForMessage(
+      message,
       // The first outbox message item becomes the middle item
       // when the bottom slice of [messages] is empty.
       shouldSetMiddleItem: index == 0 && middleMessage == messages.length,
       prevMessage: prevMessage,
       buildItem: (bool canShareSender) => MessageListOutboxMessageItem(
-        message, showSender: !canShareSender, isLastInBlock: true));
+        message,
+        showSender: !canShareSender,
+        isLastInBlock: true,
+      ),
+    );
   }
 
   /// Remove items associated with [outboxMessages] from [items].
@@ -615,6 +653,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   final PerAccountStore store;
 
+  @override
+  int get selfUserId => store.selfUserId;
+
   /// The narrow shown in this message list.
   ///
   /// This can change over time, notably if showing a topic that gets moved,
@@ -652,14 +693,15 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     super.dispose();
   }
 
-  @override bool get oneMessagePerBlock => switch (narrow) {
-    CombinedFeedNarrow()
-      || ChannelNarrow()
-      || TopicNarrow()
-      || DmNarrow() => false,
-    MentionsNarrow()
-      || StarredMessagesNarrow()
-      || KeywordSearchNarrow() => true,
+  @override
+  bool get oneMessagePerBlock => switch (narrow) {
+    CombinedFeedNarrow() ||
+    ChannelNarrow() ||
+    TopicNarrow() ||
+    DmNarrow() => false,
+    MentionsNarrow() ||
+    StarredMessagesNarrow() ||
+    KeywordSearchNarrow() => true,
   };
 
   /// Whether [message] should actually appear in this message list,
@@ -689,14 +731,20 @@ class MessageListView with ChangeNotifier, _MessageSequence {
           StreamConversation(:final streamId, :final topic) =>
             store.isTopicVisible(streamId, topic),
           DmConversation() => !store.shouldMuteDmConversation(
-            DmNarrow.ofConversation(conversation, selfUserId: store.selfUserId)),
+            DmNarrow.ofConversation(conversation, selfUserId: store.selfUserId),
+          ),
         };
 
       case ChannelNarrow(:final streamId):
-        assert(message is MessageBase<StreamConversation>
-               && message.conversation.streamId == streamId);
+        assert(
+          message is MessageBase<StreamConversation> &&
+              message.conversation.streamId == streamId,
+        );
         if (message is! MessageBase<StreamConversation>) return false;
-        return store.isTopicVisibleInStream(streamId, message.conversation.topic);
+        return store.isTopicVisibleInStream(
+          streamId,
+          message.conversation.topic,
+        );
 
       case TopicNarrow():
         assert((narrow as TopicNarrow).containsMessage(message));
@@ -711,8 +759,12 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         // should be changed correspondingly, so the message-list view matches
         // the unread-count badge.
         if (message.conversation case DmConversation(:final allRecipientIds)) {
-          return !store.shouldMuteDmConversation(DmNarrow(
-            allRecipientIds: allRecipientIds, selfUserId: store.selfUserId));
+          return !store.shouldMuteDmConversation(
+            DmNarrow(
+              allRecipientIds: allRecipientIds,
+              selfUserId: store.selfUserId,
+            ),
+          );
         }
         return true;
 
@@ -729,8 +781,12 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
       case KeywordSearchNarrow():
         if (message.conversation case DmConversation(:final allRecipientIds)) {
-          return !store.shouldMuteDmConversation(DmNarrow(
-            allRecipientIds: allRecipientIds, selfUserId: store.selfUserId));
+          return !store.shouldMuteDmConversation(
+            DmNarrow(
+              allRecipientIds: allRecipientIds,
+              selfUserId: store.selfUserId,
+            ),
+          );
         }
         return true;
     }
@@ -782,8 +838,10 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   /// Whether this event could affect the result that [_messageVisible]
   /// would ever have returned for any possible message in this message list.
-  MutedUsersVisibilityEffect _mutedUsersEventCanAffectVisibility(MutedUsersEvent event) {
-    switch(narrow) {
+  MutedUsersVisibilityEffect _mutedUsersEventCanAffectVisibility(
+    MutedUsersEvent event,
+  ) {
+    switch (narrow) {
       case CombinedFeedNarrow():
         return store.mightChangeShouldMuteDmConversation(event);
 
@@ -828,7 +886,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     _setStatus(FetchingStatus.fetchInitial, was: FetchingStatus.unstarted);
     // TODO schedule all this in another isolate
     final generation = this.generation;
-    final result = await getMessages(store.connection,
+    final result = await getMessages(
+      store.connection,
       narrow: narrow.apiEncode(),
       anchor: anchor,
       numBefore: kMessageListFetchBatchSize,
@@ -921,12 +980,14 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         store.recentSenders.handleMessages(result.messages); // TODO(#824)
 
         final fetchedMessages = _allMessagesVisible
-          ? result.messages // Avoid unnecessarily copying the list.
-          : result.messages.where(_messageVisible);
+            ? result
+                  .messages // Avoid unnecessarily copying the list.
+            : result.messages.where(_messageVisible);
 
         _insertAllMessages(0, fetchedMessages);
         _haveOldest = result.foundOldest;
-      });
+      },
+    );
   }
 
   /// Fetch the next batch of newer messages, if applicable.
@@ -960,7 +1021,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         if (haveNewest) {
           _syncOutboxMessagesFromStore();
         }
-      });
+      },
+    );
   }
 
   Future<void> _fetchMore({
@@ -969,16 +1031,20 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     required int numAfter,
     required void Function(GetMessagesResult) processResult,
   }) async {
-    assert(narrow is! TopicNarrow
-      // We only intend to send "with" in [fetchInitial]; see there.
-      || (narrow as TopicNarrow).with_ == null);
+    assert(
+      narrow is! TopicNarrow
+          // We only intend to send "with" in [fetchInitial]; see there.
+          ||
+          (narrow as TopicNarrow).with_ == null,
+    );
     _setStatus(FetchingStatus.fetchingMore, was: FetchingStatus.idle);
     final generation = this.generation;
     bool hasFetchError = false;
     try {
       final GetMessagesResult result;
       try {
-        result = await getMessages(store.connection,
+        result = await getMessages(
+          store.connection,
           narrow: narrow.apiEncode(),
           anchor: anchor,
           includeAnchor: false,
@@ -997,11 +1063,12 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       if (this.generation == generation) {
         if (hasFetchError) {
           _setStatus(FetchingStatus.backoff, was: FetchingStatus.fetchingMore);
-          unawaited((_fetchBackoffMachine ??= BackoffMachine())
-            .wait().then((_) {
+          unawaited(
+            (_fetchBackoffMachine ??= BackoffMachine()).wait().then((_) {
               if (this.generation != generation) return;
               _setStatus(FetchingStatus.idle, was: FetchingStatus.backoff);
-            }));
+            }),
+          );
         } else {
           _setStatus(FetchingStatus.idle, was: FetchingStatus.fetchingMore);
           _fetchBackoffMachine = null;
@@ -1026,9 +1093,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   bool _shouldAddOutboxMessage(OutboxMessage outboxMessage) {
     assert(haveNewest);
-    return !outboxMessage.hidden
-      && narrow.containsMessage(outboxMessage) == true
-      && _messageVisible(outboxMessage);
+    return !outboxMessage.hidden &&
+        narrow.containsMessage(outboxMessage) == true &&
+        _messageVisible(outboxMessage);
   }
 
   /// Reads [MessageStore.outboxMessages] and copies to [outboxMessages]
@@ -1054,8 +1121,11 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     // we shouldn't show any outbox messages until we do.
     if (!haveNewest) return;
 
-    assert(outboxMessages.none(
-      (message) => message.localMessageId == outboxMessage.localMessageId));
+    assert(
+      outboxMessages.none(
+        (message) => message.localMessageId == outboxMessage.localMessageId,
+      ),
+    );
     if (_shouldAddOutboxMessage(outboxMessage)) {
       _addOutboxMessage(outboxMessage);
       notifyListeners();
@@ -1079,15 +1149,19 @@ class MessageListView with ChangeNotifier, _MessageSequence {
         return;
 
       case UserTopicVisibilityEffect.muted:
-        bool removed = _removeMessagesWhere((message) =>
-          message is StreamMessage
-            && message.streamId == event.streamId
-            && message.topic.isSameAs(event.topicName));
+        bool removed = _removeMessagesWhere(
+          (message) =>
+              message is StreamMessage &&
+              message.streamId == event.streamId &&
+              message.topic.isSameAs(event.topicName),
+        );
 
-        removed |= _removeOutboxMessagesWhere((message) =>
-          message is StreamOutboxMessage
-            && message.conversation.streamId == event.streamId
-            && message.conversation.topic.isSameAs(event.topicName));
+        removed |= _removeOutboxMessagesWhere(
+          (message) =>
+              message is StreamOutboxMessage &&
+              message.conversation.streamId == event.streamId &&
+              message.conversation.topic.isSameAs(event.topicName),
+        );
 
         if (removed) {
           notifyListeners();
@@ -1113,7 +1187,10 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       case MutedUsersVisibilityEffect.muted:
         final anyRemoved = _removeMessagesWhere((message) {
           if (message is! DmMessage) return false;
-          final narrow = DmNarrow.ofMessage(message, selfUserId: store.selfUserId);
+          final narrow = DmNarrow.ofMessage(
+            message,
+            selfUserId: store.selfUserId,
+          );
           return store.shouldMuteDmConversation(narrow, event: event);
         });
         if (anyRemoved) {
@@ -1143,8 +1220,14 @@ class MessageListView with ChangeNotifier, _MessageSequence {
   void handleMessageEvent(MessageEvent event) {
     final message = event.message;
     if (narrow.containsMessage(message) != true || !_messageVisible(message)) {
-      assert(event.localMessageId == null || outboxMessages.none((message) =>
-        message.localMessageId == int.parse(event.localMessageId!, radix: 10)));
+      assert(
+        event.localMessageId == null ||
+            outboxMessages.none(
+              (message) =>
+                  message.localMessageId ==
+                  int.parse(event.localMessageId!, radix: 10),
+            ),
+      );
       return;
     }
     if (!haveNewest) {
@@ -1170,7 +1253,8 @@ class MessageListView with ChangeNotifier, _MessageSequence {
       // [outboxMessages] is expected to be short, so removing the corresponding
       // outbox message and reprocessing them all in linear time is efficient.
       outboxMessages.removeWhere(
-        (message) => message.localMessageId == localMessageId);
+        (message) => message.localMessageId == localMessageId,
+      );
     }
     _reprocessOutboxMessages();
     notifyListeners();
@@ -1228,7 +1312,11 @@ class MessageListView with ChangeNotifier, _MessageSequence {
     required List<int> messageIds,
   }) {
     final UpdateMessageMoveData(
-      :origStreamId, :newStreamId, :origTopic, :newTopic, :propagateMode,
+      :origStreamId,
+      :newStreamId,
+      :origTopic,
+      :newTopic,
+      :propagateMode,
     ) = messageMove;
     switch (narrow) {
       case DmNarrow():
@@ -1254,22 +1342,33 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
       case ChannelNarrow(:final streamId):
         switch ((origStreamId == streamId, newStreamId == streamId)) {
-          case (false, false): return;
-          case (true,  true ): _messagesMovedInternally(messageIds);
-          case (false, true ): _messagesMovedIntoNarrow();
-          case (true,  false): _messagesMovedFromNarrow(messageIds);
+          case (false, false):
+            return;
+          case (true, true):
+            _messagesMovedInternally(messageIds);
+          case (false, true):
+            _messagesMovedIntoNarrow();
+          case (true, false):
+            _messagesMovedFromNarrow(messageIds);
         }
 
       case TopicNarrow(:final streamId, :final topic):
-        final oldMatch = (origStreamId == streamId && origTopic.isSameAs(topic));
+        final oldMatch =
+            (origStreamId == streamId && origTopic.isSameAs(topic));
         final newMatch = (newStreamId == streamId && newTopic.isSameAs(topic));
         switch ((oldMatch, newMatch)) {
-          case (false, false): return;
-          case (true,  true ): return; // TODO(log) when no-op move
-          case (false, true ): _messagesMovedIntoNarrow();
-          case (true,  false):
+          case (false, false):
+            return;
+          case (true, true):
+            return; // TODO(log) when no-op move
+          case (false, true):
+            _messagesMovedIntoNarrow();
+          case (true, false):
             _messagesMovedFromNarrow(messageIds);
-            _handlePropagateMode(propagateMode, TopicNarrow(newStreamId, newTopic));
+            _handlePropagateMode(
+              propagateMode,
+              TopicNarrow(newStreamId, newTopic),
+            );
         }
     }
   }
@@ -1299,8 +1398,9 @@ class MessageListView with ChangeNotifier, _MessageSequence {
 
   /// Notify listeners if the given outbox message is present in this view.
   void notifyListenersIfOutboxMessagePresent(int localMessageId) {
-    final isAnyPresent =
-      outboxMessages.any((message) => message.localMessageId == localMessageId);
+    final isAnyPresent = outboxMessages.any(
+      (message) => message.localMessageId == localMessageId,
+    );
     if (isAnyPresent) {
       notifyListeners();
     }

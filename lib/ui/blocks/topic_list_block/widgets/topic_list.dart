@@ -7,6 +7,7 @@ import '../../../../get/services/domains/unreads/unreads_service.dart';
 import '../../../../get/services/store_service.dart';
 import '../../../../model/topics.dart';
 import '../../../../model/unreads.dart';
+import '../../../components/states/loading_placeholder.dart';
 import '../../../utils/page.dart';
 
 import '../topic_list_block.dart';
@@ -69,7 +70,7 @@ class _TopicListState extends State<TopicList> {
   Widget build(BuildContext context) {
     final channelTopics = topicsModel!.channelTopics(widget.streamId);
     if (channelTopics == null) {
-      return const Center(child: CircularProgressIndicator());
+      return const LoadingPlaceholder();
     }
 
     if (channelTopics.isEmpty) {

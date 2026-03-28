@@ -7,6 +7,7 @@ import '../../get/services/store_service.dart';
 import '../../model/autocomplete.dart';
 import '../../model/narrow.dart';
 import '../../model/store.dart';
+import '../animations.dart';
 import '../extensions/color.dart';
 import '../values/icons.dart';
 import '../blocks/recent_dm_conversations_block/recent_dm_conversations.dart';
@@ -21,6 +22,10 @@ void showNewDmSheet(BuildContext context, OnDmSelectCallback onDmSelect) {
     clipBehavior: Clip.antiAlias,
     useSafeArea: true,
     isScrollControlled: true,
+    transitionAnimationController: AnimationController(
+      duration: ZulipAnimations.bottomSheetDuration,
+      vsync: Navigator.of(Get.context!),
+    ),
     builder: (BuildContext context) => Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: NewDmPicker(onDmSelect: onDmSelect),
@@ -456,55 +461,59 @@ class _NewDmUserListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
-    return Material(
-      clipBehavior: Clip.antiAlias,
-      borderRadius: BorderRadius.circular(10),
-      color: isSelected
-          ? designVariables.bgMenuButtonSelected
-          : Colors.transparent,
-      child: InkWell(
-        highlightColor: designVariables.bgMenuButtonSelected,
-        splashFactory: NoSplash.splashFactory,
-        onTap: () => onTapped(userId),
-        child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(0, 6, 12, 6),
-          child: Row(
-            children: [
-              SizedBox(width: 8),
-              isSelected
-                  ? Icon(
-                      size: 24,
-                      color: designVariables.radioFillSelected,
-                      ZulipIcons.check_circle_checked,
-                    )
-                  : Icon(
-                      size: 24,
-                      color: designVariables.radioBorder,
-                      ZulipIcons.check_circle_unchecked,
-                    ),
-              SizedBox(width: 10),
-              Avatar(userId: userId, size: 32, borderRadius: 3),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text.rich(
-                  TextSpan(
-                    text: UsersService.to.userDisplayName(userId),
-                    children: [
-                      UserStatusEmoji.asWidgetSpan(
-                        userId: userId,
-                        fontSize: 17,
-                        textScaler: MediaQuery.textScalerOf(context),
+    return AnimatedPressOpacity(
+      opacityEnd: 0.7,
+      duration: const Duration(milliseconds: 100),
+      child: Material(
+        clipBehavior: Clip.antiAlias,
+        borderRadius: BorderRadius.circular(10),
+        color: isSelected
+            ? designVariables.bgMenuButtonSelected
+            : Colors.transparent,
+        child: InkWell(
+          highlightColor: designVariables.bgMenuButtonSelected,
+          splashFactory: NoSplash.splashFactory,
+          onTap: () => onTapped(userId),
+          child: Padding(
+            padding: const EdgeInsetsDirectional.fromSTEB(0, 6, 12, 6),
+            child: Row(
+              children: [
+                SizedBox(width: 8),
+                isSelected
+                    ? Icon(
+                        size: 24,
+                        color: designVariables.radioFillSelected,
+                        ZulipIcons.check_circle_checked,
+                      )
+                    : Icon(
+                        size: 24,
+                        color: designVariables.radioBorder,
+                        ZulipIcons.check_circle_unchecked,
                       ),
-                    ],
+                SizedBox(width: 10),
+                Avatar(userId: userId, size: 32, borderRadius: 3),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(
+                      text: UsersService.to.userDisplayName(userId),
+                      children: [
+                        UserStatusEmoji.asWidgetSpan(
+                          userId: userId,
+                          fontSize: 17,
+                          textScaler: MediaQuery.textScalerOf(context),
+                        ),
+                      ],
+                    ),
+                    style: TextStyle(
+                      fontSize: 17,
+                      height: 19 / 17,
+                      color: designVariables.textMessage,
+                    ).merge(weightVariableTextStyle(context, wght: 500)),
                   ),
-                  style: TextStyle(
-                    fontSize: 17,
-                    height: 19 / 17,
-                    color: designVariables.textMessage,
-                  ).merge(weightVariableTextStyle(context, wght: 500)),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

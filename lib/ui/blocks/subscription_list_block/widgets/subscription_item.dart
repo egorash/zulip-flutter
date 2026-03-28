@@ -34,7 +34,6 @@ class SubscriptionItem extends StatelessWidget {
     final hasUnreads = (unreadCount > 0);
     final opacity = subscription.isMuted ? 0.55 : 1.0;
     return Material(
-      // TODO(design) check if this is the right variable
       color: designVariables.background,
       child: InkWell(
         onTap: () => onChannelSelect(ChannelNarrow(subscription.streamId)),
@@ -67,9 +66,6 @@ class SubscriptionItem extends StatelessWidget {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
-                // TODO(design): unclear whether bold text is applied to all subscriptions
-                //   or only those with unreads:
-                //   https://github.com/zulip/zulip-flutter/pull/397#pullrequestreview-1742524205
                 child: Opacity(
                   opacity: opacity,
                   child: Text(
@@ -77,7 +73,6 @@ class SubscriptionItem extends StatelessWidget {
                         TextStyle(
                           fontSize: 18,
                           height: (20 / 18),
-                          // TODO(design) check if this is the right variable
                           color: designVariables.labelMenuButton,
                         ).merge(
                           weightVariableTextStyle(
@@ -96,7 +91,6 @@ class SubscriptionItem extends StatelessWidget {
             ),
             if (hasUnreads) ...[
               const SizedBox(width: 12),
-              // TODO(#747) show @-mention indicator when it applies
               Opacity(
                 opacity: opacity,
                 child: CounterBadge(
@@ -107,7 +101,6 @@ class SubscriptionItem extends StatelessWidget {
               ),
             ] else if (showMutedUnreadBadge) ...[
               const SizedBox(width: 12),
-              // TODO(#747) show @-mention indicator when it applies
               const MutedUnreadBadge(),
             ],
             const SizedBox(width: 16),

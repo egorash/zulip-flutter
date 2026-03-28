@@ -47,7 +47,6 @@ class MessageItem extends StatelessWidget {
               item: item,
             ),
           },
-          // TODO write tests for this padding logic
           if (isLastInFeed)
             const SizedBox(height: 5)
           else if (item.isLastInBlock)
@@ -61,6 +60,7 @@ class MessageItem extends StatelessWidget {
         child: child,
       );
     }
+
     return StickyHeaderItem(
       allowOverflow: !item.isLastInBlock,
       header: header,
