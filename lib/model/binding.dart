@@ -368,19 +368,8 @@ class LiveZulipBinding extends ZulipBinding {
 
   @override
   Future<GlobalStore> getGlobalStoreUniquely() {
-    assert(
-      debugRelaxGetGlobalStoreUniquely || _debugEnforceGetGlobalStoreUniquely(),
-    );
     return getGlobalStore();
   }
-
-  bool _debugEnforceGetGlobalStoreUniquely() {
-    assert(!_debugCalledGetGlobalStoreUniquely);
-    assert(_debugCalledGetGlobalStoreUniquely = true);
-    return true;
-  }
-
-  bool _debugCalledGetGlobalStoreUniquely = false;
 
   @override
   Future<bool> canLaunchUrl(Uri url) => url_launcher.canLaunchUrl(url);

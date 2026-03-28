@@ -90,8 +90,7 @@ abstract class HeaderItem extends StatelessWidget {
                 child: Text(
                   style: TextStyle(
                     fontSize: 17,
-                    height: (20 / 17),
-                    // TODO(design) check if this is the right variable
+                    fontWeight: FontWeight.w600,
                     color: designVariables.labelMenuButton,
                   ).merge(weightVariableTextStyle(context, wght: 600)),
                   maxLines: 1,

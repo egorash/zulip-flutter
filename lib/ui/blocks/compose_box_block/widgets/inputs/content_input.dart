@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:path/path.dart' as path;
-import 'package:super_clipboard/super_clipboard.dart';
 
 import '../../../../../api/exception.dart';
 import '../../../../../api/model/model.dart';
@@ -301,36 +300,36 @@ class _ContentInputState extends State<ContentInput> {
   }
 
   Future<KeyEventResult> _interceptInsering() async {
-    final clipboard = SystemClipboard.instance;
-    if (clipboard == null) {
-      return KeyEventResult.ignored;
-    }
-    final reader = await clipboard.read();
-    if (reader.canProvide(Formats.plainText)) {
-      return KeyEventResult.ignored;
-    } else if (reader.canProvide(Formats.png) ||
-        reader.canProvide(Formats.jpeg)) {
-      final isPng = reader.canProvide(Formats.png);
-      reader.getFile(isPng ? Formats.png : Formats.jpeg, (file) {
-        // Do something with the PNG image
-        final img = file.getStream();
+    // final clipboard = SystemClipboard.instance;
+    // if (clipboard == null) {
+    //   return KeyEventResult.ignored;
+    // }
+    // final reader = await clipboard.read();
+    // if (reader.canProvide(Formats.plainText)) {
+    //   return KeyEventResult.ignored;
+    // } else if (reader.canProvide(Formats.png) ||
+    //     reader.canProvide(Formats.jpeg)) {
+    //   final isPng = reader.canProvide(Formats.png);
+    //   reader.getFile(isPng ? Formats.png : Formats.jpeg, (file) {
+    //     // Do something with the PNG image
+    //     final img = file.getStream();
 
-        widget.controller.uploadFiles(
-          context: context,
-          files: [
-            FileToUpload(
-              content: img,
-              length: file.fileSize ?? 0,
-              filename: file.fileName ?? 'image.${isPng ? 'png' : 'jpeg'}',
-              mimeType: isPng ? 'image/png' : 'image/jpeg',
-            ),
-          ],
-          shouldRequestFocus: true,
-        );
-      });
+    //     widget.controller.uploadFiles(
+    //       context: context,
+    //       files: [
+    //         FileToUpload(
+    //           content: img,
+    //           length: file.fileSize ?? 0,
+    //           filename: file.fileName ?? 'image.${isPng ? 'png' : 'jpeg'}',
+    //           mimeType: isPng ? 'image/png' : 'image/jpeg',
+    //         ),
+    //       ],
+    //       shouldRequestFocus: true,
+    //     );
+    //   });
 
-      return KeyEventResult.handled;
-    }
+    //   return KeyEventResult.handled;
+    // }
     //if (reader.hasValue(Formats.png)) {
     // final pngFile = await reader.read(Formats.png);
     // final bytes = await pngFile?.getBytes();

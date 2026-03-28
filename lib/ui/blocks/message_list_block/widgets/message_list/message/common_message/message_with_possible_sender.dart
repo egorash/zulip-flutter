@@ -208,12 +208,6 @@ class MessageWithPossibleSender extends StatelessWidget {
                                         color: designVariables.labelEdited,
                                         fontSize: 12,
                                         height: (12 / 12),
-                                        letterSpacing:
-                                            proportionalLetterSpacing(
-                                              context,
-                                              0.05,
-                                              baseFontSize: 12,
-                                            ),
                                       ),
                                     ),
                                   )

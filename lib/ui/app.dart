@@ -7,9 +7,9 @@ import 'package:get/get.dart';
 import '../generated/l10n/zulip_localizations.dart';
 import '../get/app_pages.dart';
 import '../get/services/global_service.dart';
-import '../log.dart';
 import '../model/localizations.dart';
 import '../model/store.dart';
+import 'controller/app_controller.dart';
 import 'widgets/about_zulip.dart';
 import 'widgets/dialog.dart';
 import 'blocks/home_block/home.dart';
@@ -17,344 +17,98 @@ import 'blocks/login_block/login.dart';
 import 'utils/page.dart';
 import 'values/theme.dart';
 
-class ZulipApp extends StatefulWidget {
+class ZulipApp extends StatelessWidget {
   const ZulipApp({super.key, this.navigatorObservers});
 
-  /// Whether the app's widget tree is ready.
-  ///
-  /// This begins as false.  It transitions to true when the
-  /// [GlobalStore] has been loaded and the [MaterialApp] has been mounted,
-  /// and then remains true.
-  static RxBool get ready => _ready;
-  static final RxBool _ready = false.obs;
-
-  /// The navigator for the whole app.
-  ///
-  /// This is always the [GlobalKey.currentState] of [navigatorKey].
-  /// If [navigatorKey] is already mounted, this future completes immediately.
-  /// Otherwise, it waits for [ready] to become true and then completes.
-  static Future<NavigatorState> get navigator {
-    final state = navigatorKey.currentState;
-    if (state != null) return Future.value(state);
-
-    assert(!ready.value);
-    final completer = Completer<NavigatorState>();
-    ever(ready, (value) {
-      if (value) {
-        assert(ready.value);
-        completer.complete(navigatorKey.currentState!);
-      }
-    });
-    return completer.future;
-  }
-
-  /// A key for the navigator for the whole app.
-  ///
-  /// For code that exists entirely outside the widget tree and has no natural
-  /// [BuildContext] of its own, this enables interacting with the app's
-  /// navigation, by calling [GlobalKey.currentState] to get a [NavigatorState].
-  ///
-  /// During the app's early startup, this key will not yet be mounted.
-  /// It will always be mounted before [ready] becomes true,
-  /// and naturally before any widgets are mounted which are part of the
-  /// app's main UI managed by the navigator.
-  ///
-  /// See also [navigator], to asynchronously wait for the navigator
-  /// to be mounted.
-  static final navigatorKey = GlobalKey<NavigatorState>();
-
-  /// The [ScaffoldMessengerState] for the app.
-  ///
-  /// This is null during the app's early startup, while [ready] is still false.
-  ///
-  /// For code that exists entirely outside the widget tree and has no natural
-  /// [BuildContext] of its own, this enables controlling snack bars.
-  /// Where a relevant [BuildContext] does exist, prefer using that instead,
-  /// with [ScaffoldMessenger.of].
-  static ScaffoldMessengerState? get scaffoldMessenger {
-    final context = navigatorKey.currentContext;
-    if (context == null) return null;
-    // Not maybeOf; we use MaterialApp, which provides ScaffoldMessenger,
-    // so it's a bug if navigatorKey is mounted somewhere lacking that.
-    return ScaffoldMessenger.of(context);
-  }
-
-  /// The app's stack of navigation routes.
-  ///
-  /// This is null when the navigator is not mounted,
-  /// i.e. until [ready] becomes true.
-  static NavigationStack? get navigationStack {
-    final navigatorState = navigatorKey.currentState;
-    if (navigatorState == null) return null;
-    final appState = navigatorState.context
-        .findAncestorStateOfType<_ZulipAppState>()!;
-    return appState._navStackTracker;
-  }
-
-  /// Reset the state of [ZulipApp] statics, for testing.
-  ///
-  /// TODO refactor this better, perhaps unify with ZulipBinding
-  @visibleForTesting
-  static void debugReset() {
-    _snackBarCount = 0;
-    reportErrorToUserBriefly = defaultReportErrorToUserBriefly;
-    reportErrorToUserModally = defaultReportErrorToUserModally;
-    _ready.value = false;
-  }
-
-  /// A list to pass through to [MaterialApp.navigatorObservers].
-  /// Useful in tests.
   final List<NavigatorObserver>? navigatorObservers;
 
-  static int _snackBarCount = 0;
+  static RxBool get ready => AppController.to.isReady;
 
-  /// The callback we normally use as [reportErrorToUserBriefly].
-  static void _reportErrorToUserBriefly(String? message, {String? details}) {
-    assert(_ready.value);
+  static Future<NavigatorState> get navigator => AppController.to.navigator;
 
-    if (message == null) {
-      if (_snackBarCount == 0) return;
-      assert(_snackBarCount > 0);
-      // The [SnackBar] API only exposes ways to hide ether the current snack
-      // bar or all of them.
-      //
-      // To reduce the possibility of hiding snack bars not created by this
-      // helper, only clear when there are known active snack bars.
-      scaffoldMessenger!.clearSnackBars();
-      return;
-    }
+  static ScaffoldMessengerState? get scaffoldMessenger =>
+      AppController.to.scaffoldMessenger;
 
-    final zulipLocalizations = ZulipLocalizations.of(
-      navigatorKey.currentContext!,
-    );
-    final newSnackBar = scaffoldMessenger!.showSnackBar(
-      snackBarAnimationStyle: AnimationStyle(
-        duration: const Duration(milliseconds: 200),
-        reverseDuration: const Duration(milliseconds: 50),
-      ),
-      SnackBar(
-        content: Text(message),
-        action: (details == null)
-            ? null
-            : SnackBarAction(
-                label: zulipLocalizations.snackBarDetails,
-                onPressed: () => showErrorDialog(
-                  context: navigatorKey.currentContext!,
-                  title: zulipLocalizations.errorDialogTitle,
-                  message: details,
-                ),
-              ),
-      ),
-    );
+  static NavigationStack? get navigationStack =>
+      AppController.to.navStackTracker;
 
-    _snackBarCount++;
-    newSnackBar.closed.whenComplete(() => _snackBarCount--);
-  }
-
-  /// The callback we normally use as [reportErrorToUserModally].
-  static void _reportErrorToUserModally(
-    String title, {
-    String? message,
-    Uri? learnMoreButtonUrl,
-  }) {
-    assert(_ready.value);
-
-    showErrorDialog(
-      context: navigatorKey.currentContext!,
-      title: title,
-      message: message,
-      learnMoreButtonUrl: learnMoreButtonUrl,
-    );
-  }
-
-  void _declareReady() {
-    assert(navigatorKey.currentContext != null);
-    _ready.value = true;
-    reportErrorToUserBriefly = _reportErrorToUserBriefly;
-    reportErrorToUserModally = _reportErrorToUserModally;
-  }
-
-  @override
-  State<ZulipApp> createState() => _ZulipAppState();
-}
-
-class _ZulipAppState extends State<ZulipApp> with WidgetsBindingObserver {
-  final _navStackTracker = _TrackNavigationStack();
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    UpgradeWelcomeDialog.maybeShow();
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  Future<bool> didPushRouteInformation(routeInformation) async {
-    switch (routeInformation.uri) {
-      case Uri(scheme: 'zulip', host: 'login') && var url:
-        await LoginPage.handleWebAuthUrl(url);
-        return true;
-    }
-    return super.didPushRouteInformation(routeInformation);
+  @visibleForTesting
+  static void debugReset() {
+    // TODO: implement reset
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: GlobalService.to.initialize(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const MaterialApp(
-            home: Scaffold(body: Center(child: CircularProgressIndicator())),
-          );
-        }
-
-        final globalStore = GlobalService.to.globalStore;
-        if (globalStore == null) {
-          return const MaterialApp(
-            home: Scaffold(body: Center(child: Text('Failed to initialize'))),
-          );
-        }
-
-        final lastVisitedAccountId = globalStore.lastVisitedAccount?.id;
-
+    return GetBuilder<AppController>(
+      init: AppController(),
+      builder: (controller) {
         return Obx(() {
-          GlobalService.to.settingsChanged.value;
-          return GetMaterialApp(
-            onGenerateTitle: (BuildContext context) {
-              return ZulipLocalizations.of(context).zulipAppTitle;
-            },
-            localizationsDelegates: ZulipLocalizations.localizationsDelegates,
-            supportedLocales: ZulipLocalizations.supportedLocales,
-            theme: zulipThemeData(context),
-            initialBinding: InitialBinding(),
-            getPages: AppPages.pages,
-            initialRoute: lastVisitedAccountId != null
-                ? AppRoutes.home
-                : AppRoutes.addAccount,
-            navigatorKey: ZulipApp.navigatorKey,
-            navigatorObservers: [
-              if (widget.navigatorObservers != null)
-                ...widget.navigatorObservers!,
-              _PreventEmptyStack(),
-              _navStackTracker,
-              _UpdateLastVisitedAccount(globalStore),
-            ],
-            builder: (BuildContext context, Widget? child) {
-              if (!ZulipApp.ready.value) {
-                SchedulerBinding.instance.addPostFrameCallback(
-                  (_) => widget._declareReady(),
+          if (controller.isLoading.value) {
+            return MaterialApp(
+              theme: zulipThemeData(context),
+              home: Scaffold(body: Center(child: CircularProgressIndicator())),
+            );
+          }
+
+          final globalStore = controller.globalStore.value;
+          if (globalStore == null) {
+            return MaterialApp(
+              theme: zulipThemeData(context),
+              home: Scaffold(body: Center(child: Text('Failed to initialize'))),
+            );
+          }
+
+          return Obx(() {
+            GlobalService.to.settingsChanged.value;
+            return GetMaterialApp(
+              onGenerateTitle: (BuildContext context) {
+                return ZulipLocalizations.of(context).zulipAppTitle;
+              },
+              localizationsDelegates: ZulipLocalizations.localizationsDelegates,
+              supportedLocales: ZulipLocalizations.supportedLocales,
+              theme: zulipThemeData(context),
+              initialBinding: InitialBinding(),
+              getPages: AppPages.pages,
+
+              initialRoute: controller.initialRoute,
+              navigatorKey: controller.navigatorKey,
+              navigatorObservers: [
+                ...?navigatorObservers,
+                _PreventEmptyStack(controller: controller),
+                controller.navStackTracker,
+                _UpdateLastVisitedAccount(globalStore),
+              ],
+              builder: (BuildContext context, Widget? child) {
+                if (!controller.isReady.value) {
+                  SchedulerBinding.instance.addPostFrameCallback(
+                    (_) => controller.declareReady(),
+                  );
+                }
+                GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(
+                  context,
                 );
-              }
-              GlobalLocalizations.zulipLocalizations = ZulipLocalizations.of(
-                context,
-              );
-              return child!;
-            },
-            onGenerateRoute: (_) => null,
-          );
+                return child!;
+              },
+              onGenerateRoute: (_) => null,
+            );
+          });
         });
       },
     );
   }
 }
 
-/// A view of the app's navigation stack, plus convenient helpers to inspect it.
-mixin NavigationStack {
-  List<Route<dynamic>> get routes;
-
-  /// The Zulip account ID being viewed topmost in the navigation, if any.
-  ///
-  /// Typically there should be only one account present in the nav stack
-  /// at a time, in which case this is that one account's ID.
-  int? get currentAccountId {
-    for (final route in routes.reversed) {
-      if (route case AccountPageRouteMixin(:final accountId)) {
-        return accountId;
-      }
-    }
-    return null;
-  }
-
-  /// The topmost page route on the stack, if any.
-  ///
-  /// In particular this excludes dialogs and modal bottom sheets.
-  PageRoute<dynamic>? get currentPageRoute {
-    for (final route in routes.reversed) {
-      switch (route) {
-        case PageRoute():
-          return route;
-
-        case PopupRoute():
-          // This case includes dialogs and modal bottom sheets.
-          continue;
-
-        default:
-          // TODO(log) All known concrete Route subclasses are either of
-          //   PageRoute or PopupRoute.  If something else appears, we should
-          //   decide how the callers of this method want to treat it.
-          continue;
-      }
-    }
-    return null;
-  }
-}
-
-// TODO(upstream): why doesn't Navigator expose the list of routes itself?
-class _TrackNavigationStack extends NavigatorObserver with NavigationStack {
-  @override
-  final List<Route<dynamic>> routes = [];
-
-  @override
-  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    assert(identical(routes.lastOrNull, previousRoute));
-    routes.add(route);
-  }
-
-  @override
-  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    if (routes.isNotEmpty && identical(routes.lastOrNull, route)) {
-      routes.removeLast();
-    }
-  }
-
-  @override
-  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
-    final index = routes.lastIndexOf(route);
-    if (index >= 0) {
-      routes.removeAt(index);
-    }
-  }
-
-  @override
-  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
-    if (newRoute != null && oldRoute != null) {
-      final index = routes.lastIndexOf(oldRoute);
-      if (index >= 0) {
-        routes[index] = newRoute;
-      }
-    }
-  }
-
-  // No didChangeTop; it summarizes changes that the observer was already
-  // notified of through the other methods above.
-}
-
-/// Pushes a route whenever the observed navigator stack becomes empty.
 class _PreventEmptyStack extends NavigatorObserver {
+  _PreventEmptyStack({required this.controller});
+
+  final AppController controller;
+
   void _pushRouteIfEmptyStack() async {
-    final navigator = await ZulipApp.navigator;
+    final navigator = await controller.navigator;
     bool isEmptyStack = true;
-    // TODO: find a better way to inspect the navigator stack
     navigator.popUntil((route) {
       isEmptyStack = false;
-      return true; // never actually pops
+      return true;
     });
     if (isEmptyStack) {
       unawaited(
@@ -364,12 +118,12 @@ class _PreventEmptyStack extends NavigatorObserver {
   }
 
   @override
-  void didRemove(Route<void> route, Route<void>? previousRoute) async {
+  void didRemove(Route<void> route, Route<void>? previousRoute) {
     _pushRouteIfEmptyStack();
   }
 
   @override
-  void didPop(Route<void> route, Route<void>? previousRoute) async {
+  void didPop(Route<void> route, Route<void>? previousRoute) {
     _pushRouteIfEmptyStack();
   }
 }
@@ -421,7 +175,6 @@ class ChooseAccountPage extends StatelessWidget {
                 );
                 if (await dialog.result == true) {
                   if (!context.mounted) return;
-                  // TODO error handling if db write fails?
                   unawaited(GlobalService.to.logOutAccount(accountId));
                 }
               },
@@ -431,7 +184,7 @@ class ChooseAccountPage extends StatelessWidget {
           builder:
               (BuildContext context, MenuController controller, Widget? child) {
                 return IconButton(
-                  tooltip: materialLocalizations.showMenuTooltip, // "Show menu"
+                  tooltip: materialLocalizations.showMenuTooltip,
                   onPressed: () {
                     if (controller.isOpen) {
                       controller.close();
@@ -443,8 +196,6 @@ class ChooseAccountPage extends StatelessWidget {
                 );
               },
         ),
-        // The default trailing padding with M3 is 24px. Decrease by 12 because
-        // IconButton (the "…" button) comes with 12px padding on all sides.
         contentPadding: const EdgeInsetsDirectional.only(start: 16, end: 12),
         onTap: () => HomePage.navigate(context, accountId: accountId),
       ),
@@ -458,10 +209,6 @@ class ChooseAccountPage extends StatelessWidget {
     final globalStore = GlobalService.to.globalStore;
     if (globalStore == null) return const SizedBox.shrink();
 
-    // Borrowed from [AppBar.build].
-    // See documentation on [ModalRoute.impliesAppBarDismissal]:
-    // > Whether an [AppBar] in the route should automatically add a back button or
-    // > close button.
     final hasBackButton =
         ModalRoute.of(context)?.impliesAppBarDismissal ?? false;
 
@@ -541,7 +288,7 @@ class ChooseAccountPageOverflowButton extends StatelessWidget {
       builder:
           (BuildContext context, MenuController controller, Widget? child) {
             return IconButton(
-              tooltip: materialLocalizations.showMenuTooltip, // "Show menu"
+              tooltip: materialLocalizations.showMenuTooltip,
               onPressed: () {
                 if (controller.isOpen) {
                   controller.close();

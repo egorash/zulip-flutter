@@ -2,7 +2,8 @@
      open the android/ subtree as its own project
      and follow these instructions:
        https://developer.android.com/build/manage-manifests#inspect_the_merged_manifest_and_find_conflicts -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -17,12 +18,12 @@
         android:fullBackupContent="@xml/full_backup_content"
         android:dataExtractionRules="@xml/data_extraction_rules"
     >
-        <provider
+        <!-- <provider
             android:name="com.superlist.super_native_extensions.DataProvider"
-            android:authorities="<your-package-name>.SuperClipboardDataProvider"
+            android:authorities="com.zulip.flutter.SuperClipboardDataProvider"
             android:exported="true"
             android:grantUriPermissions="true">
-        </provider>
+        </provider> -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -67,14 +68,6 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-
-        <!-- Boot receiver for starting background service -->
-        <receiver android:name=".BootReceiver" android:enabled="true" android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-            </intent-filter>
-        </receiver>
 
         <!-- WorkManager initializer -->
         <provider

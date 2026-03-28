@@ -49,11 +49,6 @@ class MarkAsReadWidget extends StatelessWidget {
                               .merge(
                                 TextStyle(
                                   fontSize: 18,
-                                  letterSpacing: proportionalLetterSpacing(
-                                    context,
-                                    kButtonTextLetterSpacingProportion,
-                                    baseFontSize: 18,
-                                  ),
                                   height: (23 / 18),
                                 ).merge(
                                   weightVariableTextStyle(context, wght: 400),
