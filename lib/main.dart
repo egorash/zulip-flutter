@@ -28,17 +28,21 @@ void mainInit() {
     return true;
   }());
 
+  // Initialize live binding first - this registers all platform channels
+  LiveZulipBinding.ensureInitialized();
+
   // Initialize local notifications (wrapped to handle plugin not ready)
   _initLocalNotificationsSafe();
 
   // Initialize GetX services first
-  Get.put(GlobalService());
+  final globalService = GlobalService();
+  Get.put(globalService);
+  globalService.initialize();
+
   Get.put(StoreService());
   AccountService.initServices();
 
   LicenseRegistry.addLicense(additionalLicenses);
-  WidgetsFlutterBinding.ensureInitialized();
-  LiveZulipBinding.ensureInitialized();
   ShareService.start();
 
   // Initialize notification tap listener after delay

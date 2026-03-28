@@ -243,12 +243,7 @@ class ReactionChip extends StatelessWidget {
                         style:
                             TextStyle(
                               fontSize: (14 * 0.90),
-                              letterSpacing: proportionalLetterSpacing(
-                                context,
-                                kButtonTextLetterSpacingProportion,
-                                baseFontSize: (14 * 0.90),
-                                textScaler: labelScaler,
-                              ),
+
                               height: 13 / (14 * 0.90),
                               color: labelColor,
                             ).merge(

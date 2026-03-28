@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-
-import '../../../values/text.dart';
 import '../../../values/theme.dart';
 
 class SubscriptionListHeader extends StatelessWidget {
@@ -34,11 +32,7 @@ class SubscriptionListHeader extends StatelessWidget {
                 style: TextStyle(
                   color: designVariables.subscriptionListHeaderText,
                   fontSize: 14,
-                  letterSpacing: proportionalLetterSpacing(
-                    context,
-                    0.04,
-                    baseFontSize: 14,
-                  ),
+
                   height: (16 / 14),
                 ),
               ),

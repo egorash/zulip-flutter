@@ -157,15 +157,7 @@ class ZulipWebUiKitButton extends StatelessWidget {
       color: _labelColor(designVariables),
       fontSize: _forSize(16, 17 /* 16 */),
       height: _forSize(1, 1.20 /* 1.25 */),
-      letterSpacing: _forSize(
-        0,
-        proportionalLetterSpacing(
-          context,
-          textScaler: textScaler,
-          0.006,
-          baseFontSize: 17 /* 16 */,
-        ),
-      ),
+
     ).merge(weightVariableTextStyle(context, wght: 600)); // 500
   }
 

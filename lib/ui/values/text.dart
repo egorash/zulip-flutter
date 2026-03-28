@@ -44,124 +44,14 @@ import 'theme.dart';
 //   Does our design fit well with the fields of a [TextTheme]?
 //   (That's [TextTheme.titleLarge], [TextTheme.bodyMedium], etc.)
 Typography zulipTypography(BuildContext context) {
-  final typography = Theme.of(context).typography;
-
-  TextTheme convertGeometry(TextTheme inputTextTheme) {
-    TextTheme result = _weightVariableTextTheme(context, inputTextTheme);
-
-    result = _convertTextTheme(result, (maybeInputStyle, _) =>
-      maybeInputStyle?.merge(const TextStyle(letterSpacing: 0)));
-
-    result = result.copyWith(
-      labelLarge: result.labelLarge!.copyWith(
-        fontSize: 14.0, // (should be unchanged; restated here for explicitness)
-        letterSpacing: proportionalLetterSpacing(context,
-          kButtonTextLetterSpacingProportion, baseFontSize: 14.0),
-      ),
-    );
-
-    return result;
-  }
-
-  Typography result = typography.copyWith(
-    black: typography.black.apply(
-      fontFamily: kDefaultFontFamily,
-      fontFamilyFallback: defaultFontFamilyFallback),
-    white: typography.white.apply(
-      fontFamily: kDefaultFontFamily,
-      fontFamilyFallback: defaultFontFamilyFallback),
-
-    dense:       convertGeometry(typography.dense),
-    englishLike: convertGeometry(typography.englishLike),
-    tall:        convertGeometry(typography.tall),
-  );
-
-  assert(() {
-    // Set [TextStyle.debugLabel] for all styles, like:
-    //   "zulipTypography black titleMedium"
-
-    TextStyleConverter mkAddLabel(String debugTextThemeLabel)
-      => (TextStyle? maybeInputStyle, String debugStyleLabel)
-      => maybeInputStyle?.copyWith(debugLabel: '$debugTextThemeLabel $debugStyleLabel');
-
-    result = result.copyWith(
-      black:       _convertTextTheme(result.black,       mkAddLabel('zulipTypography black')),
-      white:       _convertTextTheme(result.white,       mkAddLabel('zulipTypography white')),
-      englishLike: _convertTextTheme(result.englishLike, mkAddLabel('zulipTypography englishLike')),
-      dense:       _convertTextTheme(result.dense,       mkAddLabel('zulipTypography dense')),
-      tall:        _convertTextTheme(result.tall,        mkAddLabel('zulipTypography tall')),
-    );
-    return true;
-  }());
-
-  return result;
+  return Theme.of(context).typography;
 }
-
-/// Convert a geometry [TextTheme] to one that works with "wght"-variable fonts.
-///
-/// A "geometry [TextTheme]" is a [TextTheme] that's meant to specify
-/// font weight and other parameters about shape, size, distance, etc.
-/// See [Typography].
-///
-/// This looks at each of the [TextStyle]s found on the input [TextTheme]
-/// (such as [TextTheme.bodyMedium]),
-/// and uses [weightVariableTextStyle] to adjust the [TextStyle].
-/// Fields that are null in the input [TextTheme] remain null in the output.
-///
-/// For each input [TextStyle], the `wght` value passed
-/// to [weightVariableTextStyle] is based on the input's [TextStyle.fontWeight].
-/// A null [TextStyle.fontWeight] is interpreted as the normal font weight.
-TextTheme _weightVariableTextTheme(BuildContext context, TextTheme input) {
-  TextStyle? convert(TextStyle? maybeInputStyle, _) {
-    if (maybeInputStyle == null) {
-      return null;
-    }
-    final inputFontWeight = maybeInputStyle.fontWeight;
-    return maybeInputStyle.merge(weightVariableTextStyle(context,
-      wght: inputFontWeight != null
-        ? wghtFromFontWeight(inputFontWeight)
-        : null));
-  }
-
-  return _convertTextTheme(input, convert);
-}
-
-typedef TextStyleConverter = TextStyle? Function(TextStyle?, String debugStyleLabel);
-
-TextTheme _convertTextTheme(
-  TextTheme input,
-  TextStyleConverter converter,
-) => TextTheme(
-  displayLarge:   converter(input.displayLarge,   'displayLarge'),
-  displayMedium:  converter(input.displayMedium,  'displayMedium'),
-  displaySmall:   converter(input.displaySmall,   'displaySmall'),
-  headlineLarge:  converter(input.headlineLarge,  'headlineLarge'),
-  headlineMedium: converter(input.headlineMedium, 'headlineMedium'),
-  headlineSmall:  converter(input.headlineSmall,  'headlineSmall'),
-  titleLarge:     converter(input.titleLarge,     'titleLarge'),
-  titleMedium:    converter(input.titleMedium,    'titleMedium'),
-  titleSmall:     converter(input.titleSmall,     'titleSmall'),
-  bodyLarge:      converter(input.bodyLarge,      'bodyLarge'),
-  bodyMedium:     converter(input.bodyMedium,     'bodyMedium'),
-  bodySmall:      converter(input.bodySmall,      'bodySmall'),
-  labelLarge:     converter(input.labelLarge,     'labelLarge'),
-  labelMedium:    converter(input.labelMedium,    'labelMedium'),
-  labelSmall:     converter(input.labelSmall,     'labelSmall'),
-);
 
 /// The [TextStyle.fontFamily] to use in most of the app.
-///
-/// The same [TextStyle] should also specify [defaultFontFamilyFallback]
-/// for [TextStyle.fontFamilyFallback].
-///
-/// This is a variable-weight font, so any [TextStyle] that uses this should be
-/// merged with the result of calling [weightVariableTextStyle].
-const kDefaultFontFamily = 'Source Sans 3';
+const String kDefaultFontFamily = 'GoogleSans';
 
 /// The [TextStyle.fontFamilyFallback] for use with [kDefaultFontFamily].
-List<String> get defaultFontFamilyFallback => [
-  emojiFontFamily,
-];
+List<String> get defaultFontFamilyFallback => [emojiFontFamily];
 
 String get emojiFontFamily {
   return _useAppleEmoji ? 'Apple Color Emoji' : 'Noto Color Emoji';
@@ -180,8 +70,10 @@ bool get _useAppleEmoji => switch (defaultTargetPlatform) {
   // The Noto Color Emoji font works fine on Android.
   // We presume it works on the other platforms.
   // Conversely Apple Color Emoji isn't an option on any of these.
-  TargetPlatform.android || TargetPlatform.linux
-    || TargetPlatform.fuchsia || TargetPlatform.windows => false,
+  TargetPlatform.android ||
+  TargetPlatform.linux ||
+  TargetPlatform.fuchsia ||
+  TargetPlatform.windows => false,
 };
 
 /// A mergeable [TextStyle] with 'Source Code Pro' and platform-aware fallbacks.
@@ -234,7 +126,8 @@ const kButtonTextLetterSpacingProportion = 0.01;
 /// ```
 ///
 /// See also [FontVariation] for more background on variable fonts.
-TextStyle weightVariableTextStyle(BuildContext context, {
+TextStyle weightVariableTextStyle(
+  BuildContext context, {
   double? wght,
   double? wghtIfPlatformRequestsBold,
 }) {
@@ -257,15 +150,18 @@ TextStyle weightVariableTextStyle(BuildContext context, {
     // TODO(#500) await/send upstream bugfix?
     fontWeight: clampVariableFontWeight(value),
 
-    inherit: true);
+    inherit: true,
+  );
 
   assert(() {
     final attributes = [
       if (wght != null) 'wght: $wght',
-      if (wghtIfPlatformRequestsBold != null) 'wghtIfPlatformRequestsBold: $wghtIfPlatformRequestsBold',
+      if (wghtIfPlatformRequestsBold != null)
+        'wghtIfPlatformRequestsBold: $wghtIfPlatformRequestsBold',
     ];
     result = result.copyWith(
-      debugLabel: 'weightVariableTextStyle(${attributes.join(', ')})');
+      debugLabel: 'weightVariableTextStyle(${attributes.join(', ')})',
+    );
     return true;
   }());
 
@@ -309,9 +205,10 @@ double bolderWght(double baseWght, {double by = 300}) {
 TextStyle bolderWghtTextStyle(TextStyle style, {double by = 300}) {
   assert(
     style.debugLabel!.contains('weightVariableTextStyle')
-    // ([ContentTheme.textStylePlainParagraph] applies [weightVariableTextStyle])
-    || style.debugLabel!.contains('ContentTheme.textStylePlainParagraph')
-    || style.debugLabel!.contains('bolderWghtTextStyle')
+        // ([ContentTheme.textStylePlainParagraph] applies [weightVariableTextStyle])
+        ||
+        style.debugLabel!.contains('ContentTheme.textStylePlainParagraph') ||
+        style.debugLabel!.contains('bolderWghtTextStyle'),
   );
   assert(by > 0);
   assert(style.fontVariations!.where((v) => v.axis == 'wght').length == 1);
@@ -320,7 +217,8 @@ TextStyle bolderWghtTextStyle(TextStyle style, {double by = 300}) {
 
   TextStyle result = TextStyle(
     fontVariations: [FontVariation('wght', newWght)],
-    fontWeight: clampVariableFontWeight(newWght));
+    fontWeight: clampVariableFontWeight(newWght),
+  );
 
   assert(() {
     result = result.copyWith(debugLabel: 'bolderWghtTextStyle(by: $by)');
@@ -339,20 +237,30 @@ TextStyle bolderWghtTextStyle(TextStyle style, {double by = 300}) {
 FontWeight clampVariableFontWeight(double wght) {
   if (wght < 450) {
     if (wght < 250) {
-      if (wght < 150)      return FontWeight.w100; // ignore_for_file: curly_braces_in_flow_control_structures
-      else                 return FontWeight.w200;
+      if (wght < 150)
+        return FontWeight
+            .w100; // ignore_for_file: curly_braces_in_flow_control_structures
+      else
+        return FontWeight.w200;
     } else {
-      if (wght < 350)      return FontWeight.w300;
-      else                 return FontWeight.w400;
+      if (wght < 350)
+        return FontWeight.w300;
+      else
+        return FontWeight.w400;
     }
   } else {
     if (wght < 650) {
-      if (wght < 550)      return FontWeight.w500;
-      else                 return FontWeight.w600;
+      if (wght < 550)
+        return FontWeight.w500;
+      else
+        return FontWeight.w600;
     } else {
-      if (wght < 750)      return FontWeight.w700;
-      else if (wght < 850) return FontWeight.w800;
-      else                 return FontWeight.w900;
+      if (wght < 750)
+        return FontWeight.w700;
+      else if (wght < 850)
+        return FontWeight.w800;
+      else
+        return FontWeight.w900;
     }
   }
 }
@@ -367,7 +275,9 @@ FontWeight clampVariableFontWeight(double wght) {
 /// setting, so if the [TextStyle] was built using [weightVariableTextStyle],
 /// this value might be larger than the `wght` that was passed to that function.
 double? wghtFromTextStyle(TextStyle style) {
-  double? result = style.fontVariations?.firstWhereOrNull((v) => v.axis == 'wght')?.value;
+  double? result = style.fontVariations
+      ?.firstWhereOrNull((v) => v.axis == 'wght')
+      ?.value;
   if (result == null && style.fontWeight != null) {
     result = wghtFromFontWeight(style.fontWeight!);
   }
@@ -392,14 +302,13 @@ double wghtFromFontWeight(FontWeight fontWeight) => fontWeight.value.toDouble();
 /// respected when the device font size setting is adjusted.
 /// To opt out of this behavior, pass [TextScaler.noScaling] or some other value
 /// for [textScaler].
-double proportionalLetterSpacing(
+double? proportionalLetterSpacing(
   BuildContext context,
   double proportion, {
   required double baseFontSize,
   TextScaler? textScaler,
 }) {
-  final effectiveTextScaler = textScaler ?? MediaQuery.textScalerOf(context);
-  return effectiveTextScaler.scale(baseFontSize) * proportion;
+  return null;
 }
 
 /// The most suitable [TextBaseline] for the current language.
@@ -412,10 +321,12 @@ double proportionalLetterSpacing(
 // locale's [ScriptCategory]. With M3 defaults, this just means varying
 // [TextStyle.textBaseline] the way we do here.
 TextBaseline localizedTextBaseline(BuildContext context) {
-  final materialLocalizations =
-    Localizations.of<MaterialLocalizations>(context, MaterialLocalizations);
-  final scriptCategory = materialLocalizations?.scriptCategory
-    ?? ScriptCategory.englishLike;
+  final materialLocalizations = Localizations.of<MaterialLocalizations>(
+    context,
+    MaterialLocalizations,
+  );
+  final scriptCategory =
+      materialLocalizations?.scriptCategory ?? ScriptCategory.englishLike;
   return switch (scriptCategory) {
     ScriptCategory.dense => TextBaseline.ideographic,
     ScriptCategory.englishLike => TextBaseline.alphabetic,
@@ -486,8 +397,7 @@ class _TextWithLinkState extends State<TextWithLink> {
   @override
   void initState() {
     super.initState();
-    _recognizer = TapGestureRecognizer()
-      ..onTap = widget.onTap;
+    _recognizer = TapGestureRecognizer()..onTap = widget.onTap;
   }
 
   @override
@@ -496,7 +406,9 @@ class _TextWithLinkState extends State<TextWithLink> {
     super.dispose();
   }
 
-  static final _markupPattern = RegExp(r'^([^<]*)<z-link>([^<]*)</z-link>([^<]*)$');
+  static final _markupPattern = RegExp(
+    r'^([^<]*)<z-link>([^<]*)</z-link>([^<]*)$',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -515,26 +427,29 @@ class _TextWithLinkState extends State<TextWithLink> {
       // comes buggily from user-controlled text.)
       span = TextSpan(text: widget.markup);
     } else {
-      span = TextSpan(children: [
-        TextSpan(text: match.group(1)),
-        TextSpan(text: match.group(2), recognizer: _recognizer,
-          style: TextStyle(
-            decoration: TextDecoration.underline,
-            // TODO(design): work out what decorationThickness to use;
-            //   the Figma design calls for 4% of the font size, but Flutter
-            //   expects it as a ratio of the font's default stroke thickness.
-            // decorationThickness: 1, // (the default)
-            // decorationOffset: // TODO(upstream): https://github.com/flutter/flutter/issues/30541
-            color: designVariables.link,
-            decorationColor: designVariables.link)),
-        TextSpan(text: match.group(3)),
-      ]);
+      span = TextSpan(
+        children: [
+          TextSpan(text: match.group(1)),
+          TextSpan(
+            text: match.group(2),
+            recognizer: _recognizer,
+            style: TextStyle(
+              decoration: TextDecoration.underline,
+              // TODO(design): work out what decorationThickness to use;
+              //   the Figma design calls for 4% of the font size, but Flutter
+              //   expects it as a ratio of the font's default stroke thickness.
+              // decorationThickness: 1, // (the default)
+              // decorationOffset: // TODO(upstream): https://github.com/flutter/flutter/issues/30541
+              color: designVariables.link,
+              decorationColor: designVariables.link,
+            ),
+          ),
+          TextSpan(text: match.group(3)),
+        ],
+      );
     }
 
-    return Text.rich(
-      style: widget.style,
-      textAlign: widget.textAlign,
-      span);
+    return Text.rich(style: widget.style, textAlign: widget.textAlign, span);
   }
 }
 
@@ -572,23 +487,27 @@ class InlineIconGeometryData {
     ZulipIcons.globe: InlineIconGeometryData._(
       sizeFactor: 0.8,
       alphabeticBaselineFactor: 1 / 8,
-      paddingFactor: 1 / 4),
+      paddingFactor: 1 / 4,
+    ),
 
     ZulipIcons.hash_sign: InlineIconGeometryData._(
       sizeFactor: 0.8,
       alphabeticBaselineFactor: 1 / 16,
-      paddingFactor: 1 / 4),
+      paddingFactor: 1 / 4,
+    ),
 
     ZulipIcons.lock: InlineIconGeometryData._(
       sizeFactor: 0.8,
       alphabeticBaselineFactor: 1 / 16,
-      paddingFactor: 1 / 4),
+      paddingFactor: 1 / 4,
+    ),
 
     ZulipIcons.chevron_right: InlineIconGeometryData._(
       sizeFactor: 1,
       alphabeticBaselineFactor: 5 / 24,
-      paddingFactor: 0),
- };
+      paddingFactor: 0,
+    ),
+  };
 
   static final _defaultGeometry = InlineIconGeometryData._(
     sizeFactor: 0.8,
@@ -610,7 +529,9 @@ WidgetSpan iconWidgetSpan({
     :sizeFactor,
     :alphabeticBaselineFactor,
     :paddingFactor,
-  ) = InlineIconGeometryData.forIcon(icon);
+  ) = InlineIconGeometryData.forIcon(
+    icon,
+  );
 
   final size = sizeFactor * fontSize;
 
@@ -624,7 +545,8 @@ WidgetSpan iconWidgetSpan({
   if (effectiveBaselineOffset != 0) {
     child = Transform.translate(
       offset: Offset(0, effectiveBaselineOffset),
-      child: child);
+      child: child,
+    );
   }
 
   if (padBefore || padAfter) {
@@ -634,13 +556,15 @@ WidgetSpan iconWidgetSpan({
         start: padBefore ? padding : 0,
         end: padAfter ? padding : 0,
       ),
-      child: child);
+      child: child,
+    );
   }
 
   return WidgetSpan(
     alignment: PlaceholderAlignment.baseline,
     baseline: baselineType,
-    child: child);
+    child: child,
+  );
 }
 
 /// An [InlineSpan] with a channel privacy icon, channel name,
@@ -664,34 +588,40 @@ InlineSpan channelTopicLabelSpan({
   final channelIcon = channel != null ? iconDataForStream(channel) : null;
   final baselineType = localizedTextBaseline(context);
 
-  return TextSpan(children: [
-    if (channelIcon != null)
-      iconWidgetSpan(
-        icon: channelIcon,
-        fontSize: fontSize,
-        baselineType: baselineType,
-        color: swatch.iconOnPlainBackground,
-        padAfter: true),
-    if (channel != null)
-      TextSpan(text: channel.name)
-    else
-      TextSpan(
-        style: TextStyle(fontStyle: FontStyle.italic),
-        text: zulipLocalizations.unknownChannelName),
-    if (topic != null) ...[
-      iconWidgetSpan(
-        icon: ZulipIcons.chevron_right,
-        fontSize: fontSize,
-        baselineType: baselineType,
-        color: color,
-        padBefore: true,
-        padAfter: true),
-      if (topic.displayName != null)
-        TextSpan(text: topic.displayName)
+  return TextSpan(
+    children: [
+      if (channelIcon != null)
+        iconWidgetSpan(
+          icon: channelIcon,
+          fontSize: fontSize,
+          baselineType: baselineType,
+          color: swatch.iconOnPlainBackground,
+          padAfter: true,
+        ),
+      if (channel != null)
+        TextSpan(text: channel.name)
       else
         TextSpan(
           style: TextStyle(fontStyle: FontStyle.italic),
-          text: store.realmEmptyTopicDisplayName),
+          text: zulipLocalizations.unknownChannelName,
+        ),
+      if (topic != null) ...[
+        iconWidgetSpan(
+          icon: ZulipIcons.chevron_right,
+          fontSize: fontSize,
+          baselineType: baselineType,
+          color: color,
+          padBefore: true,
+          padAfter: true,
+        ),
+        if (topic.displayName != null)
+          TextSpan(text: topic.displayName)
+        else
+          TextSpan(
+            style: TextStyle(fontStyle: FontStyle.italic),
+            text: store.realmEmptyTopicDisplayName,
+          ),
+      ],
     ],
-  ]);
+  );
 }

@@ -197,7 +197,7 @@ class LocalNotificationsService {
       priority: Priority.high,
 
       // Иконка
-      icon: icon ?? 'ic_notification',
+      icon: icon,
 
       // Звук
       playSound: enableSound,
