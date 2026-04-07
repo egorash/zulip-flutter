@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../get/services/store_service.dart';
-import 'store.dart';
+import '../components/states/loading_placeholder.dart' as components;
 import '../values/text.dart';
 import '../values/theme.dart';
 
@@ -238,7 +238,10 @@ class LoadingPlaceholderPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(appBar: AppBar(), body: const LoadingPlaceholder());
+    return Scaffold(
+      appBar: AppBar(),
+      body: const components.LoadingPlaceholder(),
+    );
   }
 }
 

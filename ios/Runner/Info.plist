@@ -76,8 +76,8 @@
 	</array>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
-		<string>com.zulipmobile.refresh</string>
-		<string>com.zulipmobile.backgroundFetch</string>
+		<string>ru.egorash.zulipmobile.refresh</string>
+		<string>ru.egorash.zulipmobile.backgroundFetch</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict>

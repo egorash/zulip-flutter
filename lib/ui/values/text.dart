@@ -48,7 +48,7 @@ Typography zulipTypography(BuildContext context) {
 }
 
 /// The [TextStyle.fontFamily] to use in most of the app.
-const String kDefaultFontFamily = 'GoogleSans';
+const String kDefaultFontFamily = 'Arial';
 
 /// The [TextStyle.fontFamilyFallback] for use with [kDefaultFontFamily].
 List<String> get defaultFontFamilyFallback => [emojiFontFamily];

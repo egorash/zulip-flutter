@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../get/services/global_service.dart';
 import '../../../model/message_list.dart';
 import '../../../model/narrow.dart';
+import '../../animations.dart';
 import '../compose_box_block/compose_box_block.dart';
 import 'message_list.dart';
 import '../../utils/page.dart';
@@ -275,35 +276,37 @@ class _MessageListBlockPageState extends State<MessageListBlockPage>
       //     https://www.figma.com/file/1JTNtYo9memgW7vV6d0ygq/Zulip-Mobile?node-id=147%3A9088&mode=dev
       body: Builder(
         builder: (BuildContext context) {
-          return Column(
-            // Children are expected to take the full horizontal space
-            // and handle the horizontal device insets.
-            // The bottom inset should be handled by the last child only.
-            children: [
-              MediaQuery.removePadding(
-                // Scaffold knows about the app bar, and so has run this
-                // BuildContext, which is under `body`, through
-                // MediaQuery.removePadding with `removeTop: true`.
-                context: context,
+          return ChatBackground(
+            child: Column(
+              // Children are expected to take the full horizontal space
+              // and handle the horizontal device insets.
+              // The bottom inset should be handled by the last child only.
+              children: [
+                MediaQuery.removePadding(
+                  // Scaffold knows about the app bar, and so has run this
+                  // BuildContext, which is under `body`, through
+                  // MediaQuery.removePadding with `removeTop: true`.
+                  context: context,
 
-                // The compose box, when present, pads the bottom inset.
-                // TODO(#311) If we have a bottom nav, it will pad the bottom
-                //   inset, and this should always be true.
-                removeBottom: ComposeBoxBlock.hasComposeBox(narrow),
+                  // The compose box, when present, pads the bottom inset.
+                  // TODO(#311) If we have a bottom nav, it will pad the bottom
+                  //   inset, and this should always be true.
+                  removeBottom: ComposeBoxBlock.hasComposeBox(narrow),
 
-                child: Expanded(
-                  child: MessageList(
-                    key: _messageListKey,
-                    narrow: narrow,
-                    initAnchor: initAnchor,
-                    onNarrowChanged: _narrowChanged,
-                    markReadOnScroll: markReadOnScroll,
+                  child: Expanded(
+                    child: MessageList(
+                      key: _messageListKey,
+                      narrow: narrow,
+                      initAnchor: initAnchor,
+                      onNarrowChanged: _narrowChanged,
+                      markReadOnScroll: markReadOnScroll,
+                    ),
                   ),
                 ),
-              ),
-              if (ComposeBoxBlock.hasComposeBox(narrow))
-                ComposeBoxBlock(key: _composeBoxKey, narrow: narrow),
-            ],
+                if (ComposeBoxBlock.hasComposeBox(narrow))
+                  ComposeBoxBlock(key: _composeBoxKey, narrow: narrow),
+              ],
+            ),
           );
         },
       ),

@@ -9,6 +9,7 @@ import '../get/app_pages.dart';
 import '../get/services/global_service.dart';
 import '../model/localizations.dart';
 import '../model/store.dart';
+import 'components/states/loading_placeholder.dart';
 import 'controller/app_controller.dart';
 import 'widgets/about_zulip.dart';
 import 'widgets/dialog.dart';
@@ -46,7 +47,7 @@ class ZulipApp extends StatelessWidget {
           if (controller.isLoading.value) {
             return MaterialApp(
               theme: zulipThemeData(context),
-              home: Scaffold(body: Center(child: CircularProgressIndicator())),
+              home: const Scaffold(body: LoadingPlaceholder()),
             );
           }
 
@@ -54,7 +55,22 @@ class ZulipApp extends StatelessWidget {
           if (globalStore == null) {
             return MaterialApp(
               theme: zulipThemeData(context),
-              home: Scaffold(body: Center(child: Text('Failed to initialize'))),
+              home: Scaffold(
+                body: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: Colors.red,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text('Failed to initialize'),
+                    ],
+                  ),
+                ),
+              ),
             );
           }
 

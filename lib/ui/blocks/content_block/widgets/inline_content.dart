@@ -12,6 +12,34 @@ import 'inline_image.dart';
 import 'mention.dart';
 import 'message_image_emoji.dart';
 
+bool _isImageUrl(String url) {
+  final lowerUrl = url.toLowerCase();
+  return lowerUrl.endsWith('.png') ||
+      lowerUrl.endsWith('.jpg') ||
+      lowerUrl.endsWith('.jpeg') ||
+      lowerUrl.endsWith('.gif') ||
+      lowerUrl.endsWith('.webp') ||
+      lowerUrl.endsWith('.bmp') ||
+      lowerUrl.endsWith('.svg') ||
+      lowerUrl.endsWith('.heic') ||
+      lowerUrl.contains('/thumbnail/') ||
+      lowerUrl.contains('/media/') && _hasImageExtension(lowerUrl);
+}
+
+bool _hasImageExtension(String url) {
+  final uri = Uri.tryParse(url);
+  if (uri == null) return false;
+  final path = uri.path.toLowerCase();
+  return path.endsWith('.png') ||
+      path.endsWith('.jpg') ||
+      path.endsWith('.jpeg') ||
+      path.endsWith('.gif') ||
+      path.endsWith('.webp') ||
+      path.endsWith('.bmp') ||
+      path.endsWith('.heic') ||
+      path.endsWith('.svg');
+}
+
 class InlineContent extends StatelessWidget {
   InlineContent({
     super.key,
@@ -132,6 +160,9 @@ class _InlineContentBuilder {
         );
 
       case LinkNode():
+        if (_isImageUrl(node.url)) {
+          return const TextSpan(text: '');
+        }
         final recognizer = widget.linkRecognizers?[node];
         assert(recognizer != null);
         _pushRecognizer(recognizer);

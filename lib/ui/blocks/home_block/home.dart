@@ -110,6 +110,15 @@ class HomePage extends GetView<HomeController> {
           ? BottomNavBar(tabNotifier: controller.currentTab)
           : null;
 
+      final fab = controller.isMobile
+          ? FloatingActionButton(
+              onPressed: () {
+                showMainMenu(context, tabNotifier: controller.currentTab);
+              },
+              child: Icon(Icons.menu),
+            )
+          : null;
+
       final homeBody = Stack(
         children: [
           for (final (tab, body) in pageBodies)
@@ -146,6 +155,9 @@ class HomePage extends GetView<HomeController> {
                         ),
                 ),
                 bottomNavigationBar: bottomNavBar,
+                floatingActionButton: fab,
+                floatingActionButtonLocation:
+                    FloatingActionButtonLocation.endDocked,
               )
             : Center(child: CircularProgressIndicator.adaptive()),
       );

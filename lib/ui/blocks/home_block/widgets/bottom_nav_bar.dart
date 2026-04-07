@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -8,26 +6,23 @@ import '../../home_block/home.dart';
 import '../../../values/icons.dart';
 import '../../../values/theme.dart';
 import 'main_menu.dart';
-import 'navigation_bar_button.dart';
+import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 
 class BottomNavBar extends StatelessWidget {
   const BottomNavBar({super.key, required this.tabNotifier});
 
   final Rx<HomePageTab> tabNotifier;
 
-  NavigationBarButton _button({
-    required HomePageTab tab,
-    required IconData icon,
-    required String label,
-  }) {
-    return NavigationBarButton(
-      icon: icon,
-      label: label,
-      selected: tabNotifier.value == tab,
-      onPressed: () {
-        tabNotifier.value = tab;
-      },
-    );
+  int _getCurrentIndex() {
+    final currentTab = tabNotifier.value;
+    switch (currentTab) {
+      case HomePageTab.channels:
+        return 0;
+      case HomePageTab.directMessages:
+        return 1;
+      case HomePageTab.inbox:
+        return 0;
+    }
   }
 
   @override
@@ -35,74 +30,77 @@ class BottomNavBar extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    // TODO(a11y): add tooltips for these buttons
-    final navigationBarButtons = [
-      // _button(
-      //   tab: HomePageTab.inbox,
-      //   icon: ZulipIcons.inbox,
-      //   label: zulipLocalizations.inboxPageTitle,
-      // ),
-      // _NavigationBarButton(
-      //   icon: ZulipIcons.message_feed,
-      //   label: zulipLocalizations.navBarFeedLabel,
-      //   selected: false,
-      //   onPressed: () => Navigator.push(
-      //     context,
-      //     MessageListBlockPage.buildRoute(
-      //       context: context,
-      //       narrow: const CombinedFeedNarrow(),
-      //     ),
-      //   ),
-      // ),
-      _button(
-        tab: HomePageTab.channels,
-        icon: ZulipIcons.hash_italic,
-        label: zulipLocalizations.channelsPageTitle,
-      ),
-      _button(
-        tab: HomePageTab.directMessages,
-        icon: ZulipIcons.two_person,
-        label: zulipLocalizations.recentDmConversationsPageShortLabel,
-      ),
-      NavigationBarButton(
-        icon: ZulipIcons.menu,
-        label: zulipLocalizations.navBarMenuLabel,
-        selected: false,
-        onPressed: () => showMainMenu(context, tabNotifier: tabNotifier),
-      ),
-    ];
-
-    Widget result = DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: designVariables.borderBar)),
-        color: designVariables.bgBotBar,
-      ),
-      child: SafeArea(
-        child: Center(
-          heightFactor: 1,
-          child: ConstrainedBox(
-            // TODO(design): determine a suitable max width for bottom nav bar
-            constraints: const BoxConstraints(maxWidth: 600, minHeight: 48),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final navigationBarButton in navigationBarButtons)
-                  Expanded(child: navigationBarButton),
-              ],
+    return Obx(
+      () => Container(
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: designVariables.borderBar)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
             ),
-          ),
+          ],
+        ),
+        child: SalomonBottomBar(
+          currentIndex: _getCurrentIndex(),
+          onTap: (int index) {
+            switch (index) {
+              case 0:
+                tabNotifier.value = HomePageTab.channels;
+              case 1:
+                tabNotifier.value = HomePageTab.directMessages;
+            }
+          },
+          backgroundColor: designVariables.bgBotBar,
+          selectedItemColor: designVariables.icon,
+          unselectedItemColor: designVariables.icon.withValues(alpha: 0.6),
+          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          itemPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+
+          items: [
+            SalomonBottomBarItem(
+              icon: Icon(ZulipIcons.hash_italic),
+              title: Text(
+                zulipLocalizations.channelsPageTitle,
+                style: const TextStyle(fontSize: 12),
+              ),
+              activeIcon: AnimatedScale(
+                scale: 1.1,
+                duration: const Duration(milliseconds: 200),
+                child: Icon(ZulipIcons.hash_italic),
+              ),
+            ),
+            SalomonBottomBarItem(
+              icon: Icon(ZulipIcons.two_person),
+              title: Text(
+                zulipLocalizations.recentDmConversationsPageShortLabel,
+                style: const TextStyle(fontSize: 12),
+              ),
+              activeIcon: AnimatedScale(
+                scale: 1.1,
+                duration: const Duration(milliseconds: 200),
+                child: Icon(ZulipIcons.two_person),
+              ),
+            ),
+            // SalomonBottomBarItem(
+            //   icon: Icon(ZulipIcons.menu),
+            //   title: Text(
+            //     zulipLocalizations.navBarMenuLabel,
+            //     style: const TextStyle(fontSize: 12),
+            //   ),
+            //   activeIcon: AnimatedScale(
+            //     scale: 1.1,
+            //     duration: const Duration(milliseconds: 200),
+            //     child: Icon(ZulipIcons.menu),
+            //   ),
+            // ),
+          ],
         ),
       ),
     );
-
-    result = Semantics(
-      container: true,
-      explicitChildNodes: true,
-      role: SemanticsRole.tabBar,
-      child: result,
-    );
-
-    return result;
   }
 }
 
@@ -113,16 +111,9 @@ void showMainMenu(
   final designVariables = DesignVariables.of(context);
   showModalBottomSheet<void>(
     context: context,
-    // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
-    // on my iPhone 13 Pro but is marked as "much slower":
-    //   https://api.flutter.dev/flutter/dart-ui/Clip.html
     clipBehavior: Clip.antiAlias,
     useSafeArea: true,
     isScrollControlled: true,
-    // TODO: Fix the issue that the color does not respond when the theme
-    //   changes, because `designVariables` was retrieved from a gesture handler,
-    //   not a build method.  Discussion and screenshots:
-    //     https://github.com/zulip/zulip-flutter/pull/1076/files#r1872659043
     backgroundColor: designVariables.bgBotBar,
     builder: (BuildContext _) {
       return MainMenu(tabNotifier: tabNotifier);

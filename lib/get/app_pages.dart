@@ -79,7 +79,10 @@ class AppPages {
       page: () => const AddAccountPage(),
       binding: LoginBinding(),
     ),
-    GetPage<dynamic>(name: AppRoutes.login, page: () => const LoginPage()),
+    GetPage<dynamic>(
+      name: AppRoutes.login,
+      page: () => const LoginPage(),
+    ),
     GetPage<dynamic>(
       name: AppRoutes.home,
       page: () {
@@ -160,7 +163,6 @@ class InitialBinding extends Bindings {
   void dependencies() {
     Get.lazyPut<GlobalService>(() => GlobalService());
     Get.lazyPut<AccountService>(() => AccountService());
-    Get.lazyPut<UnreadsService>(() => UnreadsService());
     Get.lazyPut<PushNotificationService>(() => PushNotificationService());
 
     Get.lazyPut<UsersService>(() => UsersService());
@@ -171,6 +173,7 @@ class InitialBinding extends Bindings {
 
     Get.lazyPut<StoreService>(() => StoreService());
     Get.lazyPut<LoginController>(() => LoginController());
+    Get.lazyPut<UnreadsService>(() => UnreadsService());
     Get.lazyPut<HomeController>(() => HomeController());
     Get.lazyPut<MessageListController>(() => MessageListController());
     Get.lazyPut<InboxController>(() => InboxController());
