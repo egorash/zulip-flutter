@@ -18,6 +18,7 @@ import '../../model/content.dart';
 import '../../model/emoji.dart';
 import '../../model/internal_link.dart';
 import '../../model/narrow.dart';
+import '../animations.dart';
 import '../utils/actions.dart';
 import 'button.dart';
 import '../extensions/color.dart';
@@ -53,12 +54,13 @@ void _showActionSheet(
 
   showModalBottomSheet<void>(
     context: pageContext,
-    // Clip.hardEdge looks bad; Clip.antiAliasWithSaveLayer looks pixel-perfect
-    // on my iPhone 13 Pro but is marked as "much slower":
-    //   https://api.flutter.dev/flutter/dart-ui/Clip.html
     clipBehavior: Clip.antiAlias,
     useSafeArea: true,
     isScrollControlled: true,
+    transitionAnimationController: AnimationController(
+      duration: ZulipAnimations.bottomSheetDuration,
+      vsync: Navigator.of(pageContext),
+    ),
     builder: (BuildContext _) {
       final designVariables = DesignVariables.of(pageContext);
 

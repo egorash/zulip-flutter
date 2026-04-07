@@ -6,11 +6,9 @@ import '../../../get/app_pages.dart';
 import '../../../api/model/model.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
 import '../../../get/services/domains/channels/channels_service.dart';
-import '../../../get/services/domains/unreads/unreads_service.dart';
 import '../../../get/services/store_service.dart';
 import '../../../model/channel.dart';
 import '../../../model/narrow.dart';
-import '../../../model/unreads.dart';
 import '../../utils/page.dart';
 
 import 'widgets/subscription_list.dart';
@@ -51,34 +49,14 @@ class SubscriptionListPageBody extends StatefulWidget {
 }
 
 class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> {
-  Unreads? unreadsModel;
-
   @override
   void initState() {
     super.initState();
-    ever(StoreService.to.currentStore, (_) => _onStoreChanged());
-    _onStoreChanged();
   }
 
   @override
   void dispose() {
-    unreadsModel?.removeListener(_modelChanged);
     super.dispose();
-  }
-
-  void _onStoreChanged() {
-    unreadsModel?.removeListener(_modelChanged);
-    final unreads = UnreadsService.to.unreads;
-    if (unreads != null) {
-      unreadsModel = unreads..addListener(_modelChanged);
-    }
-  }
-
-  void _modelChanged() {
-    setState(() {
-      // The actual state lives in [unreadsModel].
-      // This method was called because that just changed.
-    });
   }
 
   void _sortSubs(List<Subscription> list) {
@@ -184,7 +162,6 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> {
               label: zulipLocalizations.pinnedSubscriptionsLabel,
             ),
             SubscriptionList(
-              unreadsModel: unreadsModel,
               subscriptions: pinned,
               showTopicListButtonInActionSheet:
                   widget.showTopicListButtonInActionSheet,
@@ -196,7 +173,6 @@ class _SubscriptionListPageBodyState extends State<SubscriptionListPageBody> {
               label: zulipLocalizations.unpinnedSubscriptionsLabel,
             ),
             SubscriptionList(
-              unreadsModel: unreadsModel,
               subscriptions: unpinned,
               showTopicListButtonInActionSheet:
                   widget.showTopicListButtonInActionSheet,

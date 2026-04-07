@@ -7,7 +7,6 @@ import 'package:intl/intl.dart' hide TextDirection;
 import '../../../api/model/model.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
 import '../../../model/message_list.dart';
-import '../../values/text.dart';
 import '../../values/theme.dart';
 
 class RevealedMutedMessagesState extends ChangeNotifier {
@@ -56,13 +55,7 @@ TextStyle recipientHeaderTextStyle(
   BuildContext context, {
   FontStyle? fontStyle,
 }) {
-  return TextStyle(
-    color: DesignVariables.of(context).title,
-    fontSize: 16,
-    letterSpacing: proportionalLetterSpacing(context, 0.02, baseFontSize: 16),
-    height: (18 / 16),
-    fontStyle: fontStyle,
-  ).merge(weightVariableTextStyle(context, wght: 600));
+  return TextStyle(color: DesignVariables.of(context).title, fontSize: 16);
 }
 
 enum MessageTimestampStyle {

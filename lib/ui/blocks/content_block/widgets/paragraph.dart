@@ -18,7 +18,7 @@ class Paragraph extends StatelessWidget {
     final text = contentBuildBlockInlineContainer(
       node: node,
       style: DefaultTextStyle.of(context).style,
-      textAlign: isMe ? TextAlign.end : TextAlign.start,
+      textAlign: isMe ? TextAlign.start : TextAlign.start,
     );
 
     // If the paragraph didn't actually have a `p` element in the HTML,

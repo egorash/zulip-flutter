@@ -10,8 +10,10 @@ import '../../../../extensions/color.dart';
 import '../../../../values/icons.dart';
 import '../../../../values/text.dart';
 import '../../../../values/theme.dart';
+import '../../../../widgets/user.dart';
 import '../../message_list_block.dart';
 import '../search_bar.dart';
+import '../../../profile_block/profile.dart';
 
 class MessageListAppBarTitle extends StatelessWidget {
   const MessageListAppBarTitle({
@@ -177,12 +179,48 @@ class MessageListAppBarTitle extends StatelessWidget {
         final store = requirePerAccountStore();
         if (otherRecipientIds.isEmpty) {
           return Text(zulipLocalizations.dmsWithYourselfPageTitle);
-        } else {
-          final names = otherRecipientIds.map(store.userDisplayName);
-          // TODO show avatars
-          return Text(
-            zulipLocalizations.dmsWithOthersPageTitle(names.join(', ')),
+        } else if (otherRecipientIds.length == 1) {
+          final otherUserId = otherRecipientIds.first;
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                ProfilePage.buildRoute(context: context, userId: otherUserId),
+              );
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Expanded(
+                  child: Text(
+                    store.userDisplayName(otherUserId),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Avatar(userId: otherUserId, size: 36, borderRadius: 6),
+                const SizedBox(width: 12),
+              ],
+            ),
           );
+        } else {
+          final avatars = otherRecipientIds
+              .map(
+                (userId) => GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      ProfilePage.buildRoute(context: context, userId: userId),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 4),
+                    child: Avatar(userId: userId, size: 32, borderRadius: 4),
+                  ),
+                ),
+              )
+              .toList();
+          return Row(mainAxisSize: MainAxisSize.min, children: avatars);
         }
 
       case KeywordSearchNarrow():

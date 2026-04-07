@@ -1,5 +1,6 @@
 package com.zulip.flutter
 
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
@@ -48,9 +49,9 @@ class MainActivity : FlutterActivity() {
   }
 
   private fun startBackgroundWorkManager() {
-    val workRequest = PeriodicWorkRequestBuilder<BackgroundWorker>(15, TimeUnit.MINUTES)
+    val workRequest = PeriodicWorkRequestBuilder<BackgroundWorker>(5, TimeUnit.MINUTES)
       .build()
-    
+
     WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
       "zulip_background_fetch",
       ExistingPeriodicWorkPolicy.KEEP,
@@ -93,22 +94,17 @@ class MainActivity : FlutterActivity() {
 }
 
 class BackgroundWorker(
-  appContext: Context,
+  private val appContext: Context,
   workerParams: WorkerParameters
 ) : Worker(appContext, workerParams) {
 
   override fun doWork(): Result {
-    // Notify Flutter about background fetch
-    val backgroundChannel = MethodChannel(
-      applicationContext,
-      "zulip/background"
-    )
+    // Log that background work was triggered
+    android.util.Log.d("ZulipBackground", "BackgroundWorker: Fetching new messages...")
     
-    try {
-      backgroundChannel.invokeMethod("onBackgroundFetch", null)
-    } catch (e: Exception) {
-      e.printStackTrace()
-    }
+    // Note: We can't directly call Flutter MethodChannel from background worker
+    // The Flutter side will handle periodic checks when the app is next opened
+    // For real-time notifications, the server needs to send push notifications
     
     return Result.success()
   }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../../../generated/l10n/zulip_localizations.dart';
-import '../../../../../../values/text.dart';
 import '../../../../../../values/theme.dart';
 import 'restore_edit_message_gesture_detector.dart';
 
@@ -20,11 +19,7 @@ class EditMessageStatusRow extends StatelessWidget {
     final designVariables = DesignVariables.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
-    final baseTextStyle = TextStyle(
-      fontSize: 12,
-      height: 12 / 12,
-      letterSpacing: proportionalLetterSpacing(context, 0.05, baseFontSize: 12),
-    );
+    final baseTextStyle = TextStyle(fontSize: 12, height: 12 / 12);
 
     return switch (status) {
       // TODO parse markdown and show new content as local echo?

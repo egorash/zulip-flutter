@@ -7,6 +7,7 @@ import '../../../../../get/services/store_service.dart';
 import '../../../../../model/message_list.dart';
 import '../../../../../model/narrow.dart';
 import '../../../../../model/store.dart';
+import '../../../../components/states/loading_placeholder.dart';
 import '../../../../utils/page.dart';
 import '../../../compose_box_block/compose_box_block.dart';
 import '../../message_list.dart';
@@ -58,6 +59,8 @@ class _MessageListState extends State<MessageList> {
       MessageListScrollController();
 
   final RxBool _scrollToBottomVisible = false.obs;
+  final Map<int, bool> _newMessageIds = {};
+  int _previousMessageCount = 0;
 
   @override
   void initState() {
@@ -105,16 +108,28 @@ class _MessageListState extends State<MessageList> {
   bool _prevFetched = false;
 
   void _modelChanged() {
-    // When you're scrolling quickly, our mark-as-read requests include the
-    // messages *between* _messagesRecentlyInViewport and the messages currently
-    // in view, so that messages don't get left out because you were scrolling
-    // so fast that they never rendered onscreen.
-    //
-    // Here, the onscreen messages might be totally different,
-    // and not because of scrolling; e.g. because the narrow changed.
-    // Avoid "filling in" a mark-as-read request with totally wrong messages,
-    // by forgetting the old range.
     _messagesRecentlyInViewport = null;
+
+    final currentMessageCount = model.items.length;
+    if (currentMessageCount > _previousMessageCount) {
+      final currentIds = model.items
+          .whereType<MessageListMessageItem>()
+          .map((item) => item.message.id)
+          .toSet();
+      for (final id in currentIds) {
+        if (!_newMessageIds.containsKey(id)) {
+          _newMessageIds[id] = true;
+        }
+      }
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) {
+          setState(() {
+            _newMessageIds.clear();
+          });
+        }
+      });
+    }
+    _previousMessageCount = currentMessageCount;
 
     if (model.narrow != widget.narrow) {
       // Either:
@@ -305,7 +320,7 @@ class _MessageListState extends State<MessageList> {
 
   @override
   Widget build(BuildContext context) {
-    if (!model.fetched) return const Center(child: CircularProgressIndicator());
+    if (!model.fetched) return const LoadingPlaceholder();
 
     if (model.items.isEmpty && model.haveNewest && model.haveOldest) {
       return EmptyMessageListPlaceholder(narrow: widget.narrow);
@@ -414,21 +429,6 @@ class _MessageListState extends State<MessageList> {
       key: centerSliverKey,
       headerPlacement: HeaderPlacement.scrollingStart,
       delegate: SliverChildBuilderDelegate(
-        // To preserve state across rebuilds for individual [MessageItem]
-        // widgets as the size of [MessageListView.items] changes we need
-        // to match old widgets by their key to their new position in
-        // the list.
-        //
-        // The keys are of type [ValueKey] with a value of [Message.id]
-        // and here we use a O(log n) binary search method. This could
-        // be improved but for now it only triggers for materialized
-        // widgets. As a simple test, flinging through All Messages in
-        // CZO on a Pixel 5, this only runs about 10 times per rebuild
-        // and the timing for each call is <100 microseconds.
-        //
-        // Non-message items (e.g., start and end markers) that do not
-        // have state that needs to be preserved have not been given keys
-        // and will not trigger this callback.
         findChildIndexCallback: (Key key) {
           final messageId = (key as ValueKey<int>).value;
           final itemIndex = model.findItemWithMessageId(messageId);
@@ -457,12 +457,7 @@ class _MessageListState extends State<MessageList> {
       );
       topSliver = MediaQuery.removePadding(
         context: context,
-        // In the top sliver, forget the bottom inset;
-        // we're having the bottom sliver take care of it.
         removeBottom: true,
-        // (Also forget the left and right insets; the outer SafeArea, above,
-        // does that, but the `context` we're passing to this `removePadding`
-        // is from outside that SafeArea, so we need to repeat it.)
         removeLeft: true,
         removeRight: true,
         child: topSliver,
@@ -472,14 +467,9 @@ class _MessageListState extends State<MessageList> {
     return MessageListScrollView(
       key: _scrollViewKey,
 
-      // TODO: Offer `ScrollViewKeyboardDismissBehavior.interactive` (or
-      //   similar) if that is ever offered:
-      //     https://github.com/flutter/flutter/issues/57609#issuecomment-1355340849
       keyboardDismissBehavior: switch (Theme.of(context).platform) {
-        // This seems to offer the only built-in way to close the keyboard
-        // on iOS. It's not ideal; see TODO above.
         TargetPlatform.iOS => ScrollViewKeyboardDismissBehavior.onDrag,
-        // The Android keyboard seems to have a built-in close button.
+
         _ => ScrollViewKeyboardDismissBehavior.manual,
       },
 
@@ -530,6 +520,14 @@ class _MessageListState extends State<MessageList> {
   }
 
   Widget _buildItem(MessageListItem data, {required bool isLastInFeed}) {
+    final bool isNewMessage = switch (data) {
+      MessageListMessageItem(:final message) => _newMessageIds.containsKey(
+        message.id,
+      ),
+      MessageListOutboxMessageItem() => true,
+      _ => false,
+    };
+
     switch (data) {
       case MessageListRecipientHeaderItem():
         final header = RecipientHeader(
@@ -556,23 +554,44 @@ class _MessageListState extends State<MessageList> {
           message: data.message,
           narrow: widget.narrow,
         );
-        return MessageItem(
+        final messageItem = MessageItem(
           key: ValueKey(data.message.id),
           narrow: widget.narrow,
           header: header,
           isLastInFeed: isLastInFeed,
           item: data,
         );
+        if (isNewMessage) {
+          return TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            builder: (context, value, child) {
+              return Opacity(opacity: value, child: child);
+            },
+            child: messageItem,
+          );
+        }
+        return messageItem;
       case MessageListOutboxMessageItem():
         final header = RecipientHeader(
           message: data.message,
           narrow: widget.narrow,
         );
-        return MessageItem(
-          narrow: widget.narrow,
-          header: header,
-          isLastInFeed: isLastInFeed,
-          item: data,
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          builder: (context, value, child) {
+            return Opacity(opacity: value, child: child);
+          },
+          child: MessageItem(
+            key: ValueKey(data.message.id),
+            narrow: widget.narrow,
+            header: header,
+            isLastInFeed: isLastInFeed,
+            item: data,
+          ),
         );
     }
   }

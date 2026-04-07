@@ -1,25 +1,16 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:async';
 
 import 'package:get/get.dart' hide Value;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart'
-    show defaultTargetPlatform, TargetPlatform;
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../get/app_pages.dart';
 import '../../../api/core.dart';
 import '../../../api/exception.dart';
-import '../../../api/model/web_auth.dart';
 import '../../../api/route/account.dart';
 import '../../../api/route/realm.dart';
 import '../../../api/route/users.dart';
 import '../../../generated/l10n/zulip_localizations.dart';
 import '../../../get/services/global_service.dart';
-import '../../../log.dart';
-import '../../../model/binding.dart';
 import '../../../model/server_support.dart';
 import '../../../model/store.dart' hide Value;
 import '../../../model/store.dart' as store_model;
@@ -190,84 +181,6 @@ class LoginController extends GetxController {
     inProgress.value = false;
 
     unawaited(Get.toNamed(AppRoutes.login, arguments: serverSettings));
-  }
-
-  Future<void> handleWebAuthUrl(Uri url) async {
-    inProgress.value = true;
-    try {
-      await ZulipBinding.instance.closeInAppWebView();
-
-      final otp = generateOtp();
-      if (serverSettings == null) throw Error();
-
-      final payload = WebAuthPayload.parse(url);
-      if (payload.realm.origin != serverSettings!.realmUrl.origin) {
-        throw Error();
-      }
-      final apiKey = payload.decodeApiKey(otp);
-      await tryInsertAccountAndNavigate(
-        context: Get.context!,
-        userId: payload.userId,
-        email: payload.email,
-        apiKey: apiKey,
-      );
-    } catch (e) {
-      assert(debugLog(e.toString()));
-      final context = Get.context;
-      if (context == null) return;
-
-      final zulipLocalizations = ZulipLocalizations.of(context);
-      String message = zulipLocalizations.errorWebAuthOperationalError;
-      if (e is PlatformException && e.message != null) {
-        message = e.message!;
-      }
-      showErrorDialog(
-        context: context,
-        title: zulipLocalizations.errorWebAuthOperationalErrorTitle,
-        message: message,
-      );
-    } finally {
-      inProgress.value = false;
-    }
-  }
-
-  Future<void> beginWebAuth(ExternalAuthenticationMethod method) async {
-    if (serverSettings == null) return;
-
-    final otp = generateOtp();
-    try {
-      final url = serverSettings!.realmUrl
-          .resolve(method.loginUrl)
-          .replace(queryParameters: {'mobile_flow_otp': otp});
-
-      await ZulipBinding.instance.launchUrl(
-        url,
-        mode: LaunchMode.inAppBrowserView,
-      );
-    } catch (e) {
-      assert(debugLog(e.toString()));
-
-      if (e is PlatformException &&
-          defaultTargetPlatform == TargetPlatform.iOS &&
-          e.message != null &&
-          e.message!.startsWith('Error while launching')) {
-        return;
-      }
-
-      final context = Get.context;
-      if (context == null) return;
-
-      final zulipLocalizations = ZulipLocalizations.of(context);
-      String message = zulipLocalizations.errorWebAuthOperationalError;
-      if (e is PlatformException && e.message != null) {
-        message = e.message!;
-      }
-      showErrorDialog(
-        context: context,
-        title: zulipLocalizations.errorWebAuthOperationalErrorTitle,
-        message: message,
-      );
-    }
   }
 
   Future<void> tryInsertAccountAndNavigate({

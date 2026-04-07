@@ -1,0 +1,32 @@
+name: PR Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Flutter Analyze
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install system dependencies
+        run: TERM=dumb sudo apt install libsqlite3-dev -y
+
+      - name: Clone Flutter SDK
+        run: tools/ci/clone-flutter-sdk
+
+      - name: Download Flutter SDK artifacts
+        run: flutter precache --universal
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run Flutter analyze
+        run: flutter analyze
+

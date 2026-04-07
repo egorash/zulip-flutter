@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../../../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../../../../model/message.dart';
 import '../../../../../../extensions/color.dart';
-import '../../../../../../values/text.dart';
 import '../../../../../../values/theme.dart';
 import 'restore_outbox_message_gesture_detector.dart';
 
@@ -53,11 +52,6 @@ class OutboxMessageStatusRow extends StatelessWidget {
                 color: designVariables.btnLabelAttLowIntDanger,
                 fontSize: 12,
                 height: 12 / 12,
-                letterSpacing: proportionalLetterSpacing(
-                  context,
-                  0.05,
-                  baseFontSize: 12,
-                ),
               ),
             ),
           ),

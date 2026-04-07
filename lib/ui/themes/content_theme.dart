@@ -295,9 +295,8 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
     inherit: false,
 
     fontSize: kBaseFontSize,
-    letterSpacing: 0,
     textBaseline: localizedTextBaseline(context),
-    height: (22 / kBaseFontSize),
+
     leadingDistribution: TextLeadingDistribution.even,
     decoration: TextDecoration.none,
     fontFamily: kDefaultFontFamily,

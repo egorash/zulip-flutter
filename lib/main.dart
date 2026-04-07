@@ -12,6 +12,7 @@ import 'model/binding.dart';
 import 'notifications/local_notifications.dart';
 import 'notifications/open.dart';
 import 'notifications/background_service.dart';
+import 'notifications/push_notification_service.dart';
 import 'ui/app.dart';
 import 'ui/utils/share.dart';
 
@@ -27,24 +28,31 @@ void mainInit() {
     return true;
   }());
 
+  // Initialize live binding first - this registers all platform channels
+  LiveZulipBinding.ensureInitialized();
+
   // Initialize local notifications (wrapped to handle plugin not ready)
   _initLocalNotificationsSafe();
 
   // Initialize GetX services first
-  Get.put(GlobalService());
+  final globalService = GlobalService();
+  Get.put(globalService);
+  globalService.initialize();
+
   Get.put(StoreService());
   AccountService.initServices();
 
-  // Initialize background service after a delay to let plugins initialize
-  _initBackgroundServiceDelayed();
-
   LicenseRegistry.addLicense(additionalLicenses);
-  WidgetsFlutterBinding.ensureInitialized();
-  LiveZulipBinding.ensureInitialized();
   ShareService.start();
 
   // Initialize notification tap listener after delay
   _initNotificationOpenServiceDelayed();
+
+  // Initialize background service - it will handle missing platform channels gracefully
+  _initBackgroundService();
+
+  // Initialize push notification service for APNs token handling
+  _initPushNotificationService();
 }
 
 void _initLocalNotificationsSafe() {
@@ -59,22 +67,24 @@ void _initLocalNotificationsSafe() {
   }
 }
 
-void _initBackgroundServiceDelayed() {
+void _initBackgroundService() {
   try {
     Get.put<BackgroundService>(BackgroundService());
-    // Defer background service start to after Flutter is ready
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      try {
-        BackgroundService.instance.start();
-      } catch (e) {
-        debugPrint(
-          'BackgroundService start failed (expected on some platforms): $e',
-        );
-      }
-    });
+    BackgroundService.instance.start();
   } catch (e) {
     debugPrint(
       'BackgroundService init failed (expected on some platforms): $e',
+    );
+  }
+}
+
+void _initPushNotificationService() {
+  try {
+    Get.put<PushNotificationService>(PushNotificationService());
+    debugPrint('PushNotificationService initialized');
+  } catch (e) {
+    debugPrint(
+      'PushNotificationService init failed (expected on some platforms): $e',
     );
   }
 }

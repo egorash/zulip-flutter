@@ -1068,7 +1068,7 @@ class ZulipLocalizationsRu extends ZulipLocalizations {
   String get recentDmConversationsPageTitle => 'Личные сообщения';
 
   @override
-  String get recentDmConversationsPageShortLabel => 'ЛС';
+  String get recentDmConversationsPageShortLabel => 'Сообщения';
 
   @override
   String get recentDmConversationsSectionHeader => 'Личные сообщения';

@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 import '../../api/core.dart';
 import '../../model/store.dart';
+import '../../notifications/push_notification_service.dart';
 import 'account_service.dart';
 import 'domains/users/users_service.dart';
 import 'domains/channels/channels_service.dart';
@@ -70,7 +72,7 @@ class StoreService extends GetxService {
   }
 
   void _syncAllServices() {
-    if (AccountService.to.accountId == null) return;
+    // if (AccountService.to.accountId == null) return;
     UsersService.to.syncFromStore();
     ChannelsService.to.syncFromStore();
     MessagesService.to.syncFromStore();
@@ -80,6 +82,15 @@ class StoreService extends GetxService {
     GroupsService.to.syncFromStore();
     RealmService.to.syncFromStore();
     SettingsService.to.syncFromStore();
+
+    // Register for push notifications
+    try {
+      PushNotificationService.to.registerDeviceForPushNotifications(
+        currentAccountId.value,
+      );
+    } catch (e) {
+      debugPrint('Failed to register push notifications: $e');
+    }
   }
 
   PerAccountStore? get store => currentStore.value;

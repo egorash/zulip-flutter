@@ -1,0 +1,97 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: 17
+          distribution: temurin
+
+      - name: Clone Flutter SDK
+        run: tools/ci/clone-flutter-sdk
+
+      - name: Download Flutter SDK artifacts
+        run: flutter precache --universal
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --debug
+
+      - name: Get version info
+        id: version
+        run: |
+          VERSION=$(grep -m1 'version:' pubspec.yaml | awk '{print $2}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body: |
+            Android debug APK build.
+            
+            ## Changes in this release
+            - Built from commit: ${{ github.sha }}
+            - Branch: main
+          files: |
+            build/app/outputs/flutter-apk/app-debug.apk
+          tag_name: v${{ steps.version.outputs.version }}-android
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-ios:
+    name: Build iOS (for release notes)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Clone Flutter SDK
+        run: tools/ci/clone-flutter-sdk
+
+      - name: Install iOS dependencies
+        run: |
+          flutter precache --ios
+          flutter pub get
+
+      - name: Build iOS for simulator
+        run: flutter build ios --simulator --no-codesign
+
+      - name: Get version info
+        id: version
+        run: |
+          VERSION=$(grep -m1 'version:' pubspec.yaml | awk '{print $2}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body: |
+            iOS simulator build (for testing).
+            
+            To install on iOS Simulator:
+            1. Download the build from the Android release
+            2. Or build locally: `flutter build ios`
+            
+            Built from commit: ${{ github.sha }}
+            Branch: main
+          tag_name: v${{ steps.version.outputs.version }}-ios-sim
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

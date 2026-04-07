@@ -7,6 +7,7 @@ import '../../../get/services/store_service.dart';
 import '../../../model/narrow.dart';
 import '../../../model/recent_dm_conversations.dart';
 import '../../../model/unreads.dart';
+import '../../components/states/loading_placeholder.dart';
 import '../../utils/page.dart';
 import '../../widgets/sticky_header.dart';
 
@@ -25,7 +26,7 @@ class InboxPageBody extends StatelessWidget {
       builder: (controller) {
         return Obx(() {
           if (controller.isLoading.value) {
-            return const Center(child: CircularProgressIndicator());
+            return const LoadingPlaceholder();
           }
 
           final unreadsModel = controller.unreadsModel;
@@ -33,7 +34,7 @@ class InboxPageBody extends StatelessWidget {
               controller.recentDmConversationsModel;
 
           if (unreadsModel == null || recentDmConversationsModel == null) {
-            return const Center(child: CircularProgressIndicator());
+            return const LoadingPlaceholder();
           }
 
           return _InboxContent(

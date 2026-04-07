@@ -74,6 +74,11 @@
 		<string>remote-notification</string>
 		<string>processing</string>
 	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>ru.egorash.zulipmobile.refresh</string>
+		<string>ru.egorash.zulipmobile.backgroundFetch</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

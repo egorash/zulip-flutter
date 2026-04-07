@@ -5,18 +5,18 @@ import '../../../../../api/model/model.dart';
 import '../../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../../get/services/store_service.dart';
 import '../../../../../model/binding.dart';
+import '../../../../../model/emoji.dart';
 import '../../../../../model/internal_link.dart';
 import '../../../../../model/message_list.dart';
 import '../../../../../model/narrow.dart';
 import '../../../../utils/actions.dart';
+import '../../../../widgets/emoji_reaction.dart';
 import '../../../compose_box_block/compose_box.dart';
 import '../../message_list_block.dart';
 
 class MessagesListService {
   static late BuildContext pageContext;
-  static Future<void> answerMessage(
-    MessageListMessageItem item,
-  ) async {
+  static Future<void> answerMessage(MessageListMessageItem item) async {
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
     final message = item.message;
 
@@ -66,9 +66,7 @@ class MessagesListService {
     }
   }
 
-  static Future<void> copyMessage(
-    MessageListMessageItem item,
-  ) async {
+  static Future<void> copyMessage(MessageListMessageItem item) async {
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
     final message = item.message;
 
@@ -89,9 +87,7 @@ class MessagesListService {
     );
   }
 
-  static Future<void> copyMessageLink(
-    MessageListMessageItem item,
-  ) async {
+  static Future<void> copyMessageLink(MessageListMessageItem item) async {
     final zulipLocalizations = ZulipLocalizations.of(pageContext);
     final message = item.message;
 
@@ -109,9 +105,7 @@ class MessagesListService {
     );
   }
 
-  static Future<void> editMessage(
-    MessageListMessageItem item,
-  ) async {
+  static Future<void> editMessage(MessageListMessageItem item) async {
     final message = item.message;
     final composeBoxState = MessageListBlockPage.ancestorOf(
       pageContext,
@@ -124,9 +118,7 @@ class MessagesListService {
     composeBoxState.startEditInteraction(message.id);
   }
 
-  static bool getShouldShowEditButton(
-    MessageListMessageItem item,
-  ) {
+  static bool getShouldShowEditButton(MessageListMessageItem item) {
     final message = item.message;
     final store = requirePerAccountStore();
 
@@ -154,5 +146,23 @@ class MessagesListService {
         !outsideEditLimit &&
         !editMessageInProgress &&
         message.poll == null; // messages with polls cannot be edited
+  }
+
+  static void addOrRemoveReaction({
+    required bool isSelfVoted,
+    required int messageId,
+    required EmojiCandidate emoji,
+  }) {
+    final zulipLocalizations = ZulipLocalizations.of(pageContext);
+    //Get.back
+    doAddOrRemoveReaction(
+      context: pageContext,
+      doRemoveReaction: isSelfVoted,
+      messageId: messageId,
+      emoji: emoji,
+      errorDialogTitle: isSelfVoted
+          ? zulipLocalizations.errorReactionRemovingFailedTitle
+          : zulipLocalizations.errorReactionAddingFailedTitle,
+    );
   }
 }

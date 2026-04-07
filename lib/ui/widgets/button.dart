@@ -157,15 +157,6 @@ class ZulipWebUiKitButton extends StatelessWidget {
       color: _labelColor(designVariables),
       fontSize: _forSize(16, 17 /* 16 */),
       height: _forSize(1, 1.20 /* 1.25 */),
-      letterSpacing: _forSize(
-        0,
-        proportionalLetterSpacing(
-          context,
-          textScaler: textScaler,
-          0.006,
-          baseFontSize: 17 /* 16 */,
-        ),
-      ),
     ).merge(weightVariableTextStyle(context, wght: 600)); // 500
   }
 
@@ -315,8 +306,6 @@ class ZulipIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
 
-    // Really `fg-05` from the Zulip Web UI Kit palette,
-    // but this seems at least as good as that.
     final touchFeedbackColor = designVariables.foreground.withFadedAlpha(0.05);
 
     return IconButton(
@@ -329,7 +318,6 @@ class ZulipIconButton extends StatelessWidget {
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         fixedSize: Size.square(40),
 
-        // TODO(#417): Disable splash effects for all buttons globally.
         splashFactory: NoSplash.splashFactory,
         highlightColor: touchFeedbackColor,
         shape: const RoundedRectangleBorder(

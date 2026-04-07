@@ -5,6 +5,16 @@ allprojects {
     }
 }
 
+subprojects {
+    afterEvaluate { project ->
+        if (project.name.contains('irondash') || project.name.contains('super_native')) {
+            project.tasks.matching { it.name.startsWith('cargokit') }.configureEach {
+                enabled = false
+            }
+        }
+    }
+}
+
 rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
