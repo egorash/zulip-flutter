@@ -72,7 +72,7 @@ class StoreService extends GetxService {
   }
 
   void _syncAllServices() {
-    if (AccountService.to.accountId == null) return;
+    // if (AccountService.to.accountId == null) return;
     UsersService.to.syncFromStore();
     ChannelsService.to.syncFromStore();
     MessagesService.to.syncFromStore();

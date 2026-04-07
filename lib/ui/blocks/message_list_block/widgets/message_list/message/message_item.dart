@@ -5,7 +5,6 @@ import '../../../../../../get/services/store_service.dart';
 import '../../../../../../model/message_list.dart';
 import '../../../../../../model/narrow.dart';
 import '../../../../../widgets/sticky_header.dart';
-import '../../../../../values/theme.dart';
 import 'common_message/message_with_possible_sender.dart';
 import 'outbox_message/outbox_message_with_possible_sender.dart';
 import 'unread_marker.dart';
@@ -26,13 +25,11 @@ class MessageItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final designVariables = DesignVariables.of(context);
-
     final item = this.item;
     final store = requirePerAccountStore();
     final isMe = item.message.senderId == store.selfUserId;
     Widget child = ColoredBox(
-      color: designVariables.bgMessageRegular,
+      color: Colors.transparent,
       child: Column(
         crossAxisAlignment: isMe
             ? CrossAxisAlignment.end

@@ -61,6 +61,8 @@ class _DmConversationList extends StatelessWidget {
     return Obx(() {
       final store = requirePerAccountStore();
       final recentDmView = store.recentDmConversationsView;
+      final unreadsService = UnreadsService.to;
+      unreadsService.unreads; // depend on unreads changes
       final bottomInsets = MediaQuery.paddingOf(context).bottom;
       recentDmView.map; // depend on map changes
       recentDmView.latestMessages; // depend on latestMessages changes

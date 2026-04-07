@@ -110,6 +110,7 @@ class RecentDmConversationsView extends GetxController {
 
   void handleMessageEvent(MessageEvent event) {
     final message = event.message;
+
     if (message is! DmMessage) {
       return;
     }
@@ -130,6 +131,10 @@ class RecentDmConversationsView extends GetxController {
         _insertSorted(key, message.id);
       }
     }
+
+    final newMessages = Map<DmNarrow, Message?>.from(_latestMessages.value);
+    newMessages[key] = message;
+    _latestMessages.value = newMessages;
 
     for (final recipient in key.otherRecipientIds) {
       final existing = _latestMessagesByRecipient.value[recipient];
@@ -157,9 +162,9 @@ class RecentDmConversationsView extends GetxController {
         final result = await getMessages(
           conn,
           narrow: narrow.apiEncode(),
-          anchor: const NumericAnchor(0),
-          numBefore: 0,
-          numAfter: 1,
+          anchor: AnchorCode.newest,
+          numBefore: 1,
+          numAfter: 0,
           allowEmptyTopicName: true,
         );
         store.reconcileMessages(result.messages);

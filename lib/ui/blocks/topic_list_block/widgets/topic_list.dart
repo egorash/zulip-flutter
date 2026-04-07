@@ -6,7 +6,6 @@ import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../get/services/domains/unreads/unreads_service.dart';
 import '../../../../get/services/store_service.dart';
 import '../../../../model/topics.dart';
-import '../../../../model/unreads.dart';
 import '../../../components/states/loading_placeholder.dart';
 import '../../../utils/page.dart';
 
@@ -24,7 +23,6 @@ class TopicList extends StatefulWidget {
 
 class _TopicListState extends State<TopicList> {
   Topics? topicsModel;
-  Unreads? unreadsModel;
 
   @override
   void initState() {
@@ -36,7 +34,6 @@ class _TopicListState extends State<TopicList> {
   @override
   void dispose() {
     topicsModel?.removeListener(_modelChanged);
-    unreadsModel?.removeListener(_modelChanged);
     super.dispose();
   }
 
@@ -44,25 +41,14 @@ class _TopicListState extends State<TopicList> {
     topicsModel?.removeListener(_modelChanged);
     topicsModel = StoreService.to.requireStore.topics
       ..addListener(_modelChanged);
-    unreadsModel?.removeListener(_modelChanged);
-    final unreads = UnreadsService.to.unreads;
-    if (unreads != null) {
-      unreadsModel = unreads..addListener(_modelChanged);
-    }
     _fetchTopics();
   }
 
   void _modelChanged() {
-    setState(() {
-      // The actual state lives in `topicsModel` and `unreadsModel`.
-    });
+    setState(() {});
   }
 
   void _fetchTopics() async {
-    // If the fetch succeeds, `topicsModel` will notify listeners.
-    // Do nothing when the fetch fails; the topic-list will stay on
-    // the loading screen, until the user navigates away and back.
-    // TODO(design) show a nice error message on screen when this fails
     await topicsModel!.getChannelTopics(widget.streamId);
   }
 
@@ -80,33 +66,34 @@ class _TopicListState extends State<TopicList> {
       );
     }
 
-    // This is adapted from parts of the build method on [_InboxPageState].
-    final topicItems = <TopicItemData>[];
-    for (final GetChannelTopicsEntry(:maxId, name: topic) in channelTopics) {
-      final unreadMessageIds =
-          unreadsModel!.streams[widget.streamId]?[topic] ?? <int>[];
-      final countInTopic = unreadMessageIds.length;
-      final hasMention = unreadMessageIds.any(
-        (messageId) => unreadsModel!.mentions.contains(messageId),
-      );
-      topicItems.add(
-        TopicItemData(
-          topic: topic,
-          unreadCount: countInTopic,
-          hasMention: hasMention,
-          maxId: maxId,
+    return Obx(() {
+      final unreadsModel = UnreadsService.to.unreads;
+      final topicItems = <TopicItemData>[];
+      for (final GetChannelTopicsEntry(:maxId, name: topic) in channelTopics) {
+        final unreadMessageIds =
+            unreadsModel?.streams[widget.streamId]?[topic] ?? <int>[];
+        final countInTopic = unreadMessageIds.length;
+        final hasMention = unreadMessageIds.any(
+          (messageId) => unreadsModel?.mentions.contains(messageId) ?? false,
+        );
+        topicItems.add(
+          TopicItemData(
+            topic: topic,
+            unreadCount: countInTopic,
+            hasMention: hasMention,
+            maxId: maxId,
+          ),
+        );
+      }
+
+      return SafeArea(
+        bottom: false,
+        child: ListView.builder(
+          itemCount: topicItems.length,
+          itemBuilder: (context, index) =>
+              TopicItem(streamId: widget.streamId, data: topicItems[index]),
         ),
       );
-    }
-
-    return SafeArea(
-      // Don't pad the bottom here; we want the list content to do that.
-      bottom: false,
-      child: ListView.builder(
-        itemCount: topicItems.length,
-        itemBuilder: (context, index) =>
-            TopicItem(streamId: widget.streamId, data: topicItems[index]),
-      ),
-    );
+    });
   }
 }

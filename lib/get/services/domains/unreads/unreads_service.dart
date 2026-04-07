@@ -6,15 +6,26 @@ import '../../store_service.dart';
 class UnreadsService extends GetxService {
   static UnreadsService get to => Get.find<UnreadsService>();
 
+  final Rx<Unreads?> _unreads = Rx<Unreads?>(null);
+
+  Unreads? get unreads => _unreads.value;
+
   void syncFromStore() {
-    // Data is accessed directly from store via StoreService
+    final oldUnreads = _unreads.value;
+    if (oldUnreads != null) {
+      oldUnreads.removeListener(_onUnreadsChanged);
+    }
+
+    _unreads.value = StoreService.to.store?.unreads;
+    _unreads.value?.addListener(_onUnreadsChanged);
   }
 
-  Unreads? get unreads {
-    return StoreService.to.store?.unreads;
+  void _onUnreadsChanged() {
+    _unreads.refresh();
   }
 
   void clear() {
-    // No local state to clear
+    _unreads.value?.removeListener(_onUnreadsChanged);
+    _unreads.value = null;
   }
 }

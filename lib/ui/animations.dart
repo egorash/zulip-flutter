@@ -504,3 +504,170 @@ Route<T> zulipPageRoute<T>({required Widget page, RouteSettings? settings}) {
     },
   );
 }
+
+class ChatBackground extends StatelessWidget {
+  const ChatBackground({super.key, required this.child, this.opacity = 0.04});
+
+  final Widget child;
+  final double opacity;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconColor = isDark ? Colors.white : Colors.black;
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  const Color(0xFF1A1A2E),
+                  const Color(0xFF16213E),
+                  const Color(0xFF0F3460),
+                ]
+              : [
+                  const Color(0xFFE8E8FF),
+                  const Color(0xFFF0F4FF),
+                  const Color(0xFFE0E8FF),
+                ],
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: CustomPaint(
+              painter: _IconPatternPainter(
+                iconColor: iconColor.withValues(alpha: opacity),
+              ),
+            ),
+          ),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _IconPatternPainter extends CustomPainter {
+  _IconPatternPainter({required this.iconColor});
+
+  final Color iconColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = iconColor
+      ..style = PaintingStyle.fill;
+
+    const spacing = 60.0;
+    const seed = 1234567;
+
+    for (double y = 0; y < size.height + spacing; y += spacing) {
+      for (double x = 0; x < size.width + spacing; x += spacing) {
+        final iconType = (seed * (x.toInt()) + y.toInt()) % 5;
+        final offsetX = ((seed * (y.toInt() + 1)) % 40) - 20.0;
+        final offsetY = ((seed * (x.toInt() + 1)) % 40) - 20.0;
+        final rotation =
+            ((seed * (x.toInt()) * y.toInt()) % 360) * 3.14159 / 180;
+        final scale = 0.6 + ((seed * x.toInt() * y.toInt()) % 50) / 100;
+
+        final center = Offset(x + offsetX, y + offsetY);
+
+        canvas.save();
+        canvas.translate(center.dx, center.dy);
+        canvas.rotate(rotation);
+        canvas.scale(scale);
+
+        switch (iconType) {
+          case 0:
+            _drawChatBubble(canvas, paint);
+          case 1:
+            _drawEmail(canvas, paint);
+          case 2:
+            _drawUser(canvas, paint);
+          case 3:
+            _drawMessage(canvas, paint);
+          case 4:
+            _drawCircle(canvas, paint);
+        }
+
+        canvas.restore();
+      }
+    }
+  }
+
+  void _drawChatBubble(Canvas canvas, Paint paint) {
+    const size = 24.0;
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromCenter(center: Offset.zero, width: size, height: size * 0.8),
+      Radius.circular(size * 0.2),
+    );
+    canvas.drawRRect(rect, paint);
+
+    final tailPath = Path();
+    tailPath.moveTo(-size * 0.15, size * 0.3);
+    tailPath.lineTo(-size * 0.3, size * 0.45);
+    tailPath.lineTo(-size * 0.05, size * 0.45);
+    tailPath.close();
+    canvas.drawPath(tailPath, paint);
+  }
+
+  void _drawEmail(Canvas canvas, Paint paint) {
+    const size = 20.0;
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromCenter(center: Offset.zero, width: size, height: size * 0.65),
+      const Radius.circular(3),
+    );
+    canvas.drawRRect(rect, paint);
+
+    final path = Path();
+    path.moveTo(-size * 0.4, -size * 0.15);
+    path.lineTo(0, size * 0.1);
+    path.lineTo(size * 0.4, -size * 0.15);
+    canvas.drawPath(
+      path,
+      paint
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
+    paint.style = PaintingStyle.fill;
+  }
+
+  void _drawUser(Canvas canvas, Paint paint) {
+    const size = 18.0;
+    canvas.drawCircle(Offset.zero, size * 0.25, paint);
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(0, size * 0.35),
+        width: size * 0.6,
+        height: size * 0.4,
+      ),
+      paint,
+    );
+  }
+
+  void _drawMessage(Canvas canvas, Paint paint) {
+    const size = 22.0;
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromCenter(
+        center: Offset.zero,
+        width: size * 0.7,
+        height: size * 0.5,
+      ),
+      Radius.circular(size * 0.1),
+    );
+    canvas.drawRRect(rect, paint);
+  }
+
+  void _drawCircle(Canvas canvas, Paint paint) {
+    const size = 16.0;
+    canvas.drawCircle(Offset.zero, size * 0.5, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _IconPatternPainter oldDelegate) {
+    return oldDelegate.iconColor != iconColor;
+  }
+}
