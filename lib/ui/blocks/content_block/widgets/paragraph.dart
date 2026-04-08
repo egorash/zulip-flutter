@@ -21,6 +21,11 @@ class Paragraph extends StatelessWidget {
       textAlign: isMe ? TextAlign.start : TextAlign.start,
     );
 
+    final needPadding = node.nodes
+        .whereType<UserMentionNode>()
+        .toList()
+        .isEmpty;
+
     // If the paragraph didn't actually have a `p` element in the HTML,
     // then apply no margins.  (For example, these are seen in list items.)
     if (node.wasImplicit) return text;
@@ -28,7 +33,9 @@ class Paragraph extends StatelessWidget {
     // For a non-empty paragraph, though — and where there was a `p` element
     // for the Zulip CSS to apply to — the margins are real.
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: needPadding
+          ? const EdgeInsets.symmetric(vertical: 4)
+          : EdgeInsets.only(top: 4),
       child: text,
     );
   }

@@ -1,40 +1,23 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
+
+import '../utils/actions.dart';
 
 class CustomSwipeTo extends StatefulWidget {
   final Widget child;
 
   final Duration animationDuration;
-  final IconData iconOnRightSwipe;
-  final Widget? rightSwipeWidget;
   final IconData iconOnLeftSwipe;
   final Widget? leftSwipeWidget;
-  final double iconSize;
-  final Color? iconColor;
-  final double offsetDx;
-  final GestureDragUpdateCallback? onRightSwipe;
-  final GestureDragUpdateCallback? onLeftSwipe;
-  final int swipeSensitivity;
+  final VoidCallback onLeftSwipe;
 
   const CustomSwipeTo({
     super.key,
     required this.child,
-    this.onRightSwipe,
-    this.onLeftSwipe,
-    this.iconOnRightSwipe = Icons.reply,
-    this.rightSwipeWidget,
+    required this.onLeftSwipe,
     this.iconOnLeftSwipe = Icons.reply,
     this.leftSwipeWidget,
-    this.iconSize = 26.0,
-    this.iconColor,
-    this.animationDuration = const Duration(milliseconds: 150),
-    this.offsetDx = 0.3,
-    this.swipeSensitivity = 5,
-  }) : assert(
-         swipeSensitivity >= 5 && swipeSensitivity <= 35,
-         "swipeSensitivity value must be between 5 to 35",
-       );
+    this.animationDuration = const Duration(milliseconds: 200),
+  });
 
   @override
   CustomSwipeToState createState() => CustomSwipeToState();
@@ -43,11 +26,9 @@ class CustomSwipeTo extends StatefulWidget {
 class CustomSwipeToState extends State<CustomSwipeTo>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<Offset> _animation;
-  late Animation<double> _leftIconAnimation;
-  late Animation<double> _rightIconAnimation;
-  late GestureDragUpdateCallback _onSwipeLeft;
-  late GestureDragUpdateCallback _onSwipeRight;
+  late Tween<double> _positionTween;
+  Offset _currentOffset = Offset.zero;
+  bool _isDragging = false;
 
   @override
   void initState() {
@@ -56,27 +37,11 @@ class CustomSwipeToState extends State<CustomSwipeTo>
       vsync: this,
       duration: widget.animationDuration,
     );
-    _animation = Tween<Offset>(
-      begin: const Offset(0.0, 0.0),
-      end: const Offset(0.0, 0.0),
-    ).animate(CurvedAnimation(curve: Curves.decelerate, parent: _controller));
-    _leftIconAnimation = _controller.drive(Tween<double>(begin: 0.0, end: 0.0));
-    _rightIconAnimation = _controller.drive(
-      Tween<double>(begin: 0.0, end: 0.0),
-    );
-    _onSwipeLeft =
-        widget.onLeftSwipe ??
-        (details) {
-          log("Left Swipe Not Provided");
-        };
-
-    _onSwipeRight =
-        widget.onRightSwipe ??
-        (details) {
-          log("Right Swipe Not Provided");
-        };
+    _positionTween = Tween<double>(begin: 0.0, end: 0.0);
     _controller.addListener(() {
-      setState(() {});
+      setState(() {
+        _currentOffset = Offset(_positionTween.transform(_controller.value), 0);
+      });
     });
   }
 
@@ -86,95 +51,65 @@ class CustomSwipeToState extends State<CustomSwipeTo>
     super.dispose();
   }
 
-  ///Run animation for child widget
-  ///[onRight] value defines animation Offset direction
-  void _runAnimation({
-    required bool onRight,
-    required DragUpdateDetails details,
-  }) {
-    //set child animation
-    _animation = Tween(
-      begin: const Offset(0.0, 0.0),
-      end: Offset(onRight ? widget.offsetDx : -widget.offsetDx, 0.0),
-    ).animate(CurvedAnimation(curve: Curves.decelerate, parent: _controller));
-    //set back left/right icon animation
-    if (onRight) {
-      _leftIconAnimation = Tween(
-        begin: 0.0,
-        end: 1.0,
-      ).animate(CurvedAnimation(curve: Curves.decelerate, parent: _controller));
-    } else {
-      _rightIconAnimation = Tween(
-        begin: 0.0,
-        end: 1.0,
-      ).animate(CurvedAnimation(curve: Curves.decelerate, parent: _controller));
-    }
-    //Forward animation
-    _controller.forward().whenComplete(() {
-      _controller.reverse().whenComplete(() {
-        if (onRight) {
-          //keep left icon visibility to 0.0 until onRightSwipe triggers again
-          _leftIconAnimation = _controller.drive(Tween(begin: 0.0, end: 0.0));
-          _onSwipeRight(details);
-        } else {
-          //keep right icon visibility to 0.0 until onLeftSwipe triggers again
-          _rightIconAnimation = _controller.drive(Tween(begin: 0.0, end: 0.0));
-          _onSwipeLeft(details);
-        }
-      });
-    });
+  void _animateBack() {
+    if (_controller.isAnimating) return;
+    _isDragging = false;
+    _positionTween = Tween<double>(begin: _currentOffset.dx, end: 0.0);
+    _controller.forward(from: 0.0);
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onPanUpdate: (details) {
-        if (details.delta.dx > widget.swipeSensitivity &&
-            widget.onRightSwipe != null) {
-          _runAnimation(onRight: true, details: details);
+      onHorizontalDragStart: (details) {
+        if (_controller.isAnimating) return;
+        _isDragging = true;
+      },
+      onHorizontalDragUpdate: (details) {
+        if (!_isDragging || _controller.isAnimating) return;
+        double newOffset = _currentOffset.dx + details.delta.dx / 1000;
+        newOffset = newOffset.clamp(-1.0, 1.0);
+        setState(() {
+          _currentOffset = Offset(newOffset, 0);
+        });
+        if (_currentOffset.dx < -0.2) {
+          ZulipAction.triggerFeedback();
+          widget.onLeftSwipe();
+          _animateBack();
         }
-        if (details.delta.dx < -(widget.swipeSensitivity) &&
-            widget.onLeftSwipe != null) {
-          _runAnimation(onRight: false, details: details);
-        }
+      },
+      onHorizontalDragEnd: (details) {
+        if (!_isDragging) return;
+        _animateBack();
       },
       child: Stack(
         alignment: Alignment.center,
         fit: StackFit.passthrough,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              AnimatedOpacity(
-                opacity: _leftIconAnimation.value,
-                duration: widget.animationDuration,
-                curve: Curves.decelerate,
-                child:
-                    widget.rightSwipeWidget ??
-                    Icon(
-                      widget.iconOnRightSwipe,
-                      size: widget.iconSize,
-                      color:
-                          widget.iconColor ?? Theme.of(context).iconTheme.color,
-                    ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: AnimatedOpacity(
+              opacity: _currentOffset.dx > 0
+                  ? 0
+                  : (_currentOffset.dx.abs() / 0.2).clamp(0, 1),
+              duration: Duration(
+                milliseconds: widget.animationDuration.inMilliseconds ~/ 2,
               ),
-              AnimatedOpacity(
-                opacity: _rightIconAnimation.value,
-                duration: widget.animationDuration,
-                curve: Curves.decelerate,
-                child:
-                    widget.leftSwipeWidget ??
-                    Icon(
-                      widget.iconOnLeftSwipe,
-                      size: widget.iconSize,
-                      color:
-                          widget.iconColor ?? Theme.of(context).iconTheme.color,
-                    ),
-              ),
-            ],
+              curve: Curves.decelerate,
+              child:
+                  widget.leftSwipeWidget ??
+                  Icon(
+                    widget.iconOnLeftSwipe,
+                    size: 26,
+                    color: Theme.of(context).iconTheme.color,
+                  ),
+            ),
           ),
-          SlideTransition(position: _animation, child: widget.child),
+          FractionalTranslation(
+            translation: _currentOffset,
+            child: widget.child,
+          ),
         ],
       ),
     );

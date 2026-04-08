@@ -73,6 +73,7 @@ dependencies:
     git:
       url: https://github.com/SportUp-Tech/flutter_login
   salomon_bottom_bar: ^3.3.2
+  macos_haptic_feedback: ^1.0.0
 
 dependency_overrides:
   # TODO(#918) remove this and `flutter_color_models` when `flutter_color_models` accommodates

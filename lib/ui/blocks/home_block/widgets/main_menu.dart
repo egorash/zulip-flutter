@@ -45,8 +45,8 @@ class MainMenu extends StatelessWidget {
       const _StarredMessagesButton(),
       //const _CombinedFeedButton(),
       // TODO: Drafts
-      _ChannelsButton(tabNotifier: tabNotifier),
-      _DirectMessagesButton(tabNotifier: tabNotifier),
+      // _ChannelsButton(tabNotifier: tabNotifier),
+      // _DirectMessagesButton(tabNotifier: tabNotifier),
       // TODO(#1094): Users
       const _MyProfileButton(),
       // TODO(#198): Set my status
@@ -302,22 +302,22 @@ abstract class MenuButton extends StatelessWidget {
   }
 }
 
-/// A menu button controlling the selected [_HomePageTab] on the bottom nav bar.
-abstract class _NavigationBarMenuButton extends MenuButton {
-  const _NavigationBarMenuButton({required this.tabNotifier});
+// /// A menu button controlling the selected [_HomePageTab] on the bottom nav bar.
+// abstract class _NavigationBarMenuButton extends MenuButton {
+//   const _NavigationBarMenuButton({required this.tabNotifier});
 
-  final Rx<HomePageTab> tabNotifier;
+//   final Rx<HomePageTab> tabNotifier;
 
-  HomePageTab get navigationTarget;
+//   HomePageTab get navigationTarget;
 
-  @override
-  bool get selected => tabNotifier.value == navigationTarget;
+//   @override
+//   bool get selected => tabNotifier.value == navigationTarget;
 
-  @override
-  void onPressed(BuildContext context) {
-    tabNotifier.value = navigationTarget;
-  }
-}
+//   @override
+//   void onPressed(BuildContext context) {
+//     tabNotifier.value = navigationTarget;
+//   }
+// }
 
 class _SearchButton extends MenuButton {
   const _SearchButton();
@@ -410,48 +410,48 @@ class _StarredMessagesButton extends MenuButton {
   }
 }
 
-class _ChannelsButton extends _NavigationBarMenuButton {
-  const _ChannelsButton({required super.tabNotifier});
+// class _ChannelsButton extends _NavigationBarMenuButton {
+//   const _ChannelsButton({required super.tabNotifier});
 
-  @override
-  IconData get icon => ZulipIcons.hash_italic;
+//   @override
+//   IconData get icon => ZulipIcons.hash_italic;
 
-  @override
-  String label(ZulipLocalizations zulipLocalizations) {
-    return zulipLocalizations.channelsPageTitle;
-  }
+//   @override
+//   String label(ZulipLocalizations zulipLocalizations) {
+//     return zulipLocalizations.channelsPageTitle;
+//   }
 
-  @override
-  HomePageTab get navigationTarget => HomePageTab.channels;
-}
+//   @override
+//   HomePageTab get navigationTarget => HomePageTab.channels;
+// }
 
-class _DirectMessagesButton extends _NavigationBarMenuButton {
-  const _DirectMessagesButton({required super.tabNotifier});
+// class _DirectMessagesButton extends _NavigationBarMenuButton {
+//   const _DirectMessagesButton({required super.tabNotifier});
 
-  @override
-  IconData get icon => ZulipIcons.two_person;
+//   @override
+//   IconData get icon => ZulipIcons.two_person;
 
-  @override
-  String label(ZulipLocalizations zulipLocalizations) {
-    return zulipLocalizations.recentDmConversationsPageTitle;
-  }
+//   @override
+//   String label(ZulipLocalizations zulipLocalizations) {
+//     return zulipLocalizations.recentDmConversationsPageTitle;
+//   }
 
-  @override
-  Widget? buildTrailing(BuildContext context) {
-    final store = requirePerAccountStore();
-    final unreadCount = store.unreads.countInDms();
-    if (unreadCount == 0) return null;
-    return CounterBadge(
-      kind: CounterBadgeKind.unread,
-      style: CounterBadgeStyle.mainMenu,
-      count: unreadCount,
-      channelIdForBackground: null,
-    );
-  }
+//   @override
+//   Widget? buildTrailing(BuildContext context) {
+//     final store = requirePerAccountStore();
+//     final unreadCount = store.unreads.countInDms();
+//     if (unreadCount == 0) return null;
+//     return CounterBadge(
+//       kind: CounterBadgeKind.unread,
+//       style: CounterBadgeStyle.mainMenu,
+//       count: unreadCount,
+//       channelIdForBackground: null,
+//     );
+//   }
 
-  @override
-  HomePageTab get navigationTarget => HomePageTab.directMessages;
-}
+//   @override
+//   HomePageTab get navigationTarget => HomePageTab.directMessages;
+// }
 
 class _MyProfileButton extends MenuButton {
   const _MyProfileButton();

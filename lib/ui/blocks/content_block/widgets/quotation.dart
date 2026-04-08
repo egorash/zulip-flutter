@@ -15,6 +15,7 @@ class Quotation extends StatelessWidget {
       padding: const EdgeInsetsDirectional.only(start: 10),
       child: Container(
         padding: const EdgeInsetsDirectional.only(start: 5),
+        alignment: Alignment.centerLeft,
         decoration: BoxDecoration(
           border: BorderDirectional(
             start: BorderSide(
@@ -24,7 +25,17 @@ class Quotation extends StatelessWidget {
             ),
           ),
         ),
-        child: BlockContentList(nodes: node.nodes, isMe: isMe),
+        child: BlockContentList(
+          nodes: node.nodes
+            ..removeWhere(
+              (n) =>
+                  n is QuotationNode ||
+                  n is LinkNode ||
+                  (n is ParagraphNode &&
+                      n.nodes.whereType<UserMentionNode>().toList().isNotEmpty),
+            ),
+          isMe: isMe,
+        ),
       ),
     );
   }

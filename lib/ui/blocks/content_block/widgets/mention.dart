@@ -5,7 +5,6 @@ import '../../../../api/model/permission.dart';
 import '../../../../generated/l10n/zulip_localizations.dart';
 import '../../../../get/services/store_service.dart';
 import '../../../../model/content.dart';
-import '../../../themes/content_theme.dart';
 import '../../../values/constants.dart';
 import 'inline_content.dart';
 
@@ -22,7 +21,7 @@ class Mention extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = requirePerAccountStore();
-    final contentTheme = ContentTheme.of(context);
+    //final contentTheme = ContentTheme.of(context);
     final zulipLocalizations = ZulipLocalizations.of(context);
 
     var nodes = node.nodes;
@@ -51,30 +50,45 @@ class Mention extends StatelessWidget {
       case WildcardMentionNode():
     }
 
-    final backgroundPillColor = switch (node) {
-      UserMentionNode() => contentTheme.colorDirectMentionBackground,
-      UserGroupMentionNode() ||
-      WildcardMentionNode() => contentTheme.colorGroupMentionBackground,
-    };
+    // final backgroundPillColor = switch (node) {
+    //   UserMentionNode() => contentTheme.colorDirectMentionBackground,
+    //   UserGroupMentionNode() ||
+    //   WildcardMentionNode() => contentTheme.colorGroupMentionBackground,
+    // };
 
     return Container(
+      margin: const EdgeInsetsDirectional.only(start: 10),
+      padding: const EdgeInsetsDirectional.only(start: 5),
+      alignment: Alignment.centerLeft,
       decoration: BoxDecoration(
-        color: backgroundPillColor,
-        borderRadius: const BorderRadius.all(Radius.circular(3)),
+        border: BorderDirectional(
+          start: BorderSide(
+            width: 5,
+            // Web has the same color in light and dark mode.
+            color: const HSLColor.fromAHSL(1, 0, 0, 0.87).toColor(),
+          ),
+        ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
-      child: InlineContent(
-        // If an @-mention is inside a link, let the @-mention override it.
-        recognizer:
-            null, // TODO(#1867) make @-mentions tappable, for info on user
-        // One hopes an @-mention can't contain an embedded link.
-        // (The parser on creating a MentionNode has a TODO to check that.)
-        linkRecognizers: null,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.lightBlue,
+          borderRadius: const BorderRadius.all(Radius.circular(3)),
+        ),
 
-        // TODO(#647) when self-user is mentioned, make bold, and change font color.
-        style: ambientTextStyle,
+        padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
+        child: InlineContent(
+          // If an @-mention is inside a link, let the @-mention override it.
+          recognizer:
+              null, // TODO(#1867) make @-mentions tappable, for info on user
+          // One hopes an @-mention can't contain an embedded link.
+          // (The parser on creating a MentionNode has a TODO to check that.)
+          linkRecognizers: null,
 
-        nodes: nodes,
+          // TODO(#647) when self-user is mentioned, make bold, and change font color.
+          style: ambientTextStyle,
+
+          nodes: nodes,
+        ),
       ),
     );
   }

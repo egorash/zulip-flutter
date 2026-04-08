@@ -72,10 +72,12 @@ class MessageWithPossibleSender extends StatelessWidget {
       );
     }
 
-    Widget content = MessageContent(
-      isMe: isMe,
-      message: message,
-      content: item.content,
+    Widget content = IntrinsicWidth(
+      child: MessageContent(
+        isMe: isMe,
+        message: message,
+        content: item.content,
+      ),
     );
 
     final editMessageErrorStatus = store.getEditMessageErrorStatus(message.id);
@@ -114,7 +116,7 @@ class MessageWithPossibleSender extends StatelessWidget {
         )!.isMutedMessageRevealed(message.id);
 
     return CustomSwipeTo(
-      onLeftSwipe: (details) {
+      onLeftSwipe: () {
         _answerMessage(context);
       },
       child: FocusedMessageMenu(
@@ -189,9 +191,12 @@ class MessageWithPossibleSender extends StatelessWidget {
                               children: [
                                 content,
                                 if ((message.reactions?.total ?? 0) > 0)
-                                  ReactionChipsList(
-                                    messageId: message.id,
-                                    reactions: message.reactions!,
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: ReactionChipsList(
+                                      messageId: message.id,
+                                      reactions: message.reactions!,
+                                    ),
                                   ),
                                 if (editMessageErrorStatus != null)
                                   EditMessageStatusRow(

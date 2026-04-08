@@ -24,6 +24,7 @@ class BlockInlineContainer extends StatefulWidget {
 }
 
 class _BlockInlineContainerState extends State<BlockInlineContainer> {
+  late List<InlineContentNode> nodes;
   final Map<LinkNode, GestureRecognizer> _recognizers = {};
 
   void _prepareRecognizers() {
@@ -47,6 +48,10 @@ class _BlockInlineContainerState extends State<BlockInlineContainer> {
 
   @override
   void initState() {
+    nodes = widget.nodes;
+    if (nodes.whereType<UserMentionNode>().toList().isNotEmpty) {
+      nodes = [nodes.first];
+    }
     super.initState();
     _prepareRecognizers();
   }
@@ -72,7 +77,7 @@ class _BlockInlineContainerState extends State<BlockInlineContainer> {
       recognizer: null,
       linkRecognizers: _recognizers,
       style: widget.style,
-      nodes: widget.nodes,
+      nodes: nodes,
       textAlign: widget.textAlign,
     );
   }

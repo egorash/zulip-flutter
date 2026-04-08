@@ -63,7 +63,7 @@ class SideNavigationRail extends StatelessWidget {
       _button(
         tab: HomePageTab.directMessages,
         icon: ZulipIcons.two_person,
-        label: zulipLocalizations.recentDmConversationsPageShortLabel,
+        label: 'ЛС',
       ),
       NavigationBarButton(
         icon: ZulipIcons.menu,

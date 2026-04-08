@@ -77,21 +77,8 @@ abstract class MessageListAppBar {
         break;
       case ChannelNarrow(:final streamId):
         actions.add(TopicListButton(streamId: streamId));
-      case TopicNarrow(:final streamId):
-        actions.add(
-          IconButton(
-            icon: const Icon(ZulipIcons.message_feed),
-            tooltip: zulipLocalizations.channelFeedButtonTooltip,
-            onPressed: () => Navigator.push(
-              context,
-              MessageListBlockPage.buildRoute(
-                context: context,
-                narrow: ChannelNarrow(streamId),
-              ),
-            ),
-          ),
-        );
-        actions.add(TopicListButton(streamId: streamId));
+      case TopicNarrow():
+        break;
     }
 
     return ZulipAppBar(
