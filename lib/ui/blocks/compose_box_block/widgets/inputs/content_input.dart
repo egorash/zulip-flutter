@@ -356,7 +356,7 @@ class _ContentInputState extends State<ContentInput> {
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
         ),
-        child: Container(
+        child: SizedBox(
           height: MediaQuery.of(context).size.height * 0.8,
           //decoration: const BoxDecoration(color: AppColors.white),
           child: StickersScreen(narrow: widget.narrow),

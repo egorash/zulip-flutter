@@ -1,9 +1,8 @@
 // ignore_for_file: unawaited_futures
 
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
+
+import '../../../../../native_sticker/native_sticker.dart';
 
 class StickerCard extends StatefulWidget {
   final String assetPath;
@@ -15,53 +14,21 @@ class StickerCard extends StatefulWidget {
 }
 
 class _StickerCardState extends State<StickerCard> {
-  late VideoPlayerController _controller;
-  bool _isInitialized = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _initPlayer();
-  }
-
-  Future<void> _initPlayer() async {
-    _controller = VideoPlayerController.asset(widget.assetPath);
-    try {
-    await _controller.initialize();
-    } catch (e) {
-      log(e.toString());
-    }
-
-    if (mounted) {
-      setState(() => _isInitialized = true);
-    }
-
-    _controller.setLooping(true);
-    _controller.play();
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (!_isInitialized) {
-      return SizedBox(
+    return OptimizedNativeSticker(
+      assetPath: widget.assetPath,
+      size: widget.size,
+      loop: true,
+      errorWidget: SizedBox(
         height: widget.size,
         width: widget.size,
-        child: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    return SizedBox(
-      height: widget.size,
-      width: widget.size,
-      child: VideoPlayer(_controller),
+        child: Icon(
+          Icons.broken_image_outlined,
+          size: (widget.size ?? 100) * 0.4,
+          color: Colors.grey[400],
+        ),
+      ),
     );
-  }
-
-  @override
-  void dispose() {
-    if (_isInitialized) {
-      _controller.dispose();
-    }
-    super.dispose();
   }
 }

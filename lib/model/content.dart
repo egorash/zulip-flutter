@@ -1685,8 +1685,9 @@ class _ZulipContentParser {
     if (element.localName == 'ol') {
       final startAttr = element.attributes['start'];
       final start = startAttr == null ? 1 : int.tryParse(startAttr, radix: 10);
-      if (start == null)
+      if (start == null) {
         return UnimplementedBlockContentNode(htmlNode: element);
+      }
       return OrderedListNode(items, start: start, debugHtmlNode: debugHtmlNode);
     } else {
       return UnorderedListNode(items, debugHtmlNode: debugHtmlNode);

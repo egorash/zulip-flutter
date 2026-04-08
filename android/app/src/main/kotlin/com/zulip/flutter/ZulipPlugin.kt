@@ -290,11 +290,15 @@ private class AndroidNotificationHost(val context: Context)
 @Keep
 class ZulipPlugin : FlutterPlugin { // TODO ActivityAware too?
     private var notificationHost: AndroidNotificationHost? = null
+    private var nativeStickerHandler: NativeStickerHandler? = null
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         Log.d(TAG, "Attaching to Flutter engine.")
         notificationHost = AndroidNotificationHost(binding.applicationContext)
         AndroidNotificationHostApi.setUp(binding.binaryMessenger, notificationHost)
+        
+        nativeStickerHandler = NativeStickerHandler(binding.applicationContext)
+        nativeStickerHandler?.register(binding.flutterEngine, binding.binaryMessenger)
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
@@ -304,5 +308,6 @@ class ZulipPlugin : FlutterPlugin { // TODO ActivityAware too?
         }
         AndroidNotificationHostApi.setUp(binding.binaryMessenger, null)
         notificationHost = null
+        nativeStickerHandler = null
     }
 }

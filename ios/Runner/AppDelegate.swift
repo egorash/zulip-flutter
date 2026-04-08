@@ -8,6 +8,7 @@ import BackgroundTasks
   private var notificationTapEventListener: NotificationTapEventListener?
   private var pushTokenChannel: FlutterMethodChannel?
   private var backgroundChannel: FlutterMethodChannel?
+  private var nativeStickerHandler: NativeStickerHandler?
 
   override func application(
     _ application: UIApplication,
@@ -20,7 +21,7 @@ import BackgroundTasks
         name: "zulip/push_tokens",
         binaryMessenger: controller.binaryMessenger
       )
-      
+
       backgroundChannel = FlutterMethodChannel(
         name: "zulip/background",
         binaryMessenger: controller.binaryMessenger
@@ -36,13 +37,22 @@ import BackgroundTasks
           result(FlutterMethodNotImplemented)
         }
       }
-      
+
       // Signal Flutter that native is ready
       let readyChannel = FlutterMethodChannel(
         name: "zulip/ready",
         binaryMessenger: controller.binaryMessenger
       )
       readyChannel.invokeMethod("onNativeReady", arguments: nil)
+
+      nativeStickerHandler = NativeStickerHandler(textureRegistry: controller.engine.textureRegistry)
+      let stickerChannel = FlutterMethodChannel(
+        name: "zulip_native_sticker",
+        binaryMessenger: controller.binaryMessenger
+      )
+      stickerChannel.setMethodCallHandler { [weak self] call, result in
+        self?.handleStickerMethodCall(call: call, result: result)
+      }
     }
 
     UNUserNotificationCenter.current().delegate = self
@@ -65,10 +75,10 @@ import BackgroundTasks
 
     // Register for background fetch
     // Note: We'll also register when Flutter calls startBackgroundFetch
-    
+
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
-  
+
   private func setupBackgroundFetch(_ application: UIApplication) {
     application.setMinimumBackgroundFetchInterval(UIApplication.backgroundFetchIntervalMinimum)
     print("AppDelegate: Background fetch enabled")
@@ -92,7 +102,7 @@ import BackgroundTasks
   ) {
     let token = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
     print("APNs device token: \(token)")
-    
+
     // Send token to Flutter via method channel
     pushTokenChannel?.invokeMethod("onApnsTokenReceived", arguments: token)
   }
@@ -113,11 +123,11 @@ import BackgroundTasks
   ) {
     // Handle background notification
     print("AppDelegate: Received background notification: \(userInfo)")
-    
+
     // Check if it's a silent push (content-available: 1)
     if let contentAvailable = userInfo["content-available"] as? Int, contentAvailable == 1 {
       print("AppDelegate: Silent push received, fetching new messages...")
-      
+
       // Call Flutter background fetch handler
       backgroundChannel?.invokeMethod("onSilentPush", arguments: userInfo) { result in
         completionHandler(.newData)
@@ -132,6 +142,26 @@ import BackgroundTasks
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    
+    // Get texture registry through the plugin registry
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "NativeSticker") {
+        let messenger = registrar.messenger()
+        
+        // Set static texture registry using 'textures' property
+        NativeStickerHandler.setTextureRegistry(registrar.textures())
+        // Store registrar for asset path resolution
+        NativeStickerHandler.setRegistrar(registrar)
+        
+        nativeStickerHandler = NativeStickerHandler(textureRegistry: nil)
+        
+        let stickerChannel = FlutterMethodChannel(
+            name: "zulip_native_sticker",
+            binaryMessenger: messenger
+        )
+        stickerChannel.setMethodCallHandler { [weak self] call, result in
+            self?.handleStickerMethodCall(call: call, result: result)
+        }
+    }
   }
 
   override func userNotificationCenter(
@@ -203,4 +233,65 @@ class NotificationApnsTokenHandler {
 
 extension Notification.Name {
   static let apnsTokenReceived = Notification.Name("apnsTokenReceived")
+}
+
+extension AppDelegate {
+  private func handleStickerMethodCall(call: FlutterMethodCall, result: @escaping FlutterResult) {
+    guard let args = call.arguments as? [String: Any] else {
+      result(FlutterError(code: "INVALID_ARGS", message: "Invalid arguments", details: nil))
+      return
+    }
+
+    switch call.method {
+    case "create":
+      let assetPath = args["assetPath"] as? String ?? ""
+      let width = args["width"] as? Int ?? 100
+      let height = args["height"] as? Int ?? 100
+
+      nativeStickerHandler?.createTexture(assetPath: assetPath, width: width, height: height) { createResult in
+        switch createResult {
+        case .success(let textureId):
+          result(["textureId": textureId])
+        case .failure(let error):
+          result(FlutterError(code: "CREATE_ERROR", message: error.localizedDescription, details: nil))
+        }
+      }
+
+    case "destroy":
+      if let textureId = args["textureId"] as? Int64 {
+        nativeStickerHandler?.destroyTexture(textureId)
+        result(nil)
+      } else {
+        result(FlutterError(code: "INVALID_ARGS", message: "textureId required", details: nil))
+      }
+
+    case "play":
+      if let textureId = args["textureId"] as? Int64 {
+        nativeStickerHandler?.play(textureId)
+        result(nil)
+      } else {
+        result(FlutterError(code: "INVALID_ARGS", message: "textureId required", details: nil))
+      }
+
+    case "pause":
+      if let textureId = args["textureId"] as? Int64 {
+        nativeStickerHandler?.pause(textureId)
+        result(nil)
+      } else {
+        result(FlutterError(code: "INVALID_ARGS", message: "textureId required", details: nil))
+      }
+
+    case "setLooping":
+      if let textureId = args["textureId"] as? Int64,
+         let loop = args["loop"] as? Bool {
+        nativeStickerHandler?.setLooping(textureId, loop: loop)
+        result(nil)
+      } else {
+        result(FlutterError(code: "INVALID_ARGS", message: "textureId and loop required", details: nil))
+      }
+
+    default:
+      result(FlutterMethodNotImplemented)
+    }
+  }
 }
