@@ -98,64 +98,78 @@ class RecentDmConversationsItem extends StatelessWidget {
         child: InkWell(
           onTap: () => onDmSelect(narrow),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 0, 0),
-                child: AvatarShape(
-                  size: _avatarSize,
-                  borderRadius: 99,
-                  backgroundColor: userIdForPresence != null
-                      ? backgroundColor
-                      : null,
-                  userIdForPresence: userIdForPresence,
-                  child: avatar,
-                ),
-              ),
-              const SizedBox(width: 12),
               Expanded(
-                child: Container(
-                  constraints: const BoxConstraints(minHeight: 48),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(
-                        color: Colors.grey.withValues(alpha: 0.25),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                        12,
+                        8,
+                        0,
+                        0,
+                      ),
+                      child: AvatarShape(
+                        size: _avatarSize,
+                        borderRadius: 99,
+                        backgroundColor: userIdForPresence != null
+                            ? backgroundColor
+                            : null,
+                        userIdForPresence: userIdForPresence,
+                        child: avatar,
                       ),
                     ),
-                  ),
-                  padding: const EdgeInsets.only(top: 8, bottom: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text.rich(
-                        style: TextStyle(
-                          fontSize: 17,
-                          height: 1.15,
-                          // TODO(design) check if this is the right variable
-                          color: designVariables.labelMenuButton,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Container(
+                        constraints: const BoxConstraints(minHeight: 48),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Colors.grey.withValues(alpha: 0.25),
+                            ),
+                          ),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        title,
-                      ),
-                      Obx(
-                        () => _buildMessagePreview(
-                          context,
-                          lastMessage.value?.content,
+                        padding: const EdgeInsets.only(top: 8, bottom: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text.rich(
+                              style: TextStyle(
+                                fontSize: 17,
+                                height: 1.15,
+                                // TODO(design) check if this is the right variable
+                                color: designVariables.labelMenuButton,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              title,
+                            ),
+                            Obx(
+                              () => _buildMessagePreview(
+                                context,
+                                lastMessage.value?.content,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 12),
+                  ],
                 ),
               ),
-              const SizedBox(width: 12),
               unreadCount > 0
-                  ? Padding(
-                      padding: const EdgeInsetsDirectional.only(end: 16),
-                      child: CounterBadge(
-                        kind: CounterBadgeKind.unread,
-                        channelIdForBackground: null,
-                        count: unreadCount,
+                  ? Align(
+                      alignment: Alignment.centerRight,
+                      child: Padding(
+                        padding: const EdgeInsetsDirectional.only(end: 16),
+                        child: CounterBadge(
+                          kind: CounterBadgeKind.unread,
+                          channelIdForBackground: null,
+                          count: unreadCount,
+                        ),
                       ),
                     )
                   : const SizedBox(),

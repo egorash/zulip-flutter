@@ -1,27 +1,21 @@
 PODS:
   - FlutterMacOS (1.0.0)
-  - irondash_engine_context (0.0.1):
-    - FlutterMacOS
-  - super_native_extensions (0.0.1):
+  - macos_haptic_feedback (1.0.0):
     - FlutterMacOS
 
 DEPENDENCIES:
   - FlutterMacOS (from `Flutter/ephemeral`)
-  - irondash_engine_context (from `Flutter/ephemeral/.symlinks/plugins/irondash_engine_context/macos`)
-  - super_native_extensions (from `Flutter/ephemeral/.symlinks/plugins/super_native_extensions/macos`)
+  - macos_haptic_feedback (from `Flutter/ephemeral/.symlinks/plugins/macos_haptic_feedback/macos`)
 
 EXTERNAL SOURCES:
   FlutterMacOS:
     :path: Flutter/ephemeral
-  irondash_engine_context:
-    :path: Flutter/ephemeral/.symlinks/plugins/irondash_engine_context/macos
-  super_native_extensions:
-    :path: Flutter/ephemeral/.symlinks/plugins/super_native_extensions/macos
+  macos_haptic_feedback:
+    :path: Flutter/ephemeral/.symlinks/plugins/macos_haptic_feedback/macos
 
 SPEC CHECKSUMS:
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
-  irondash_engine_context: 893c7d96d20ce361d7e996f39d360c4c2f9869ba
-  super_native_extensions: c2795d6d9aedf4a79fae25cb6160b71b50549189
+  macos_haptic_feedback: 298e5c06ffc3838e80c557b24a74937a060798e6
 
 PODFILE CHECKSUM: 2423b9e9518377f0fe5efc4dd489074a146c1bff
 

@@ -50,7 +50,7 @@ class NavigationBarButton extends StatelessWidget {
                   Text(
                     label,
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11,
                       color: color,
                       height: 1,
                     ),

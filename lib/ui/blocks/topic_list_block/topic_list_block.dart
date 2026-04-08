@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
-import '../../../get/app_pages.dart';
 import '../../../api/model/model.dart';
-import '../../../generated/l10n/zulip_localizations.dart';
 import '../../../get/services/store_service.dart';
-import '../../../model/narrow.dart';
 import '../../widgets/app_bar.dart';
-import '../../values/icons.dart';
 import '../../utils/page.dart';
 import '../../values/theme.dart';
 import 'widgets/topic_list.dart';
@@ -46,7 +41,6 @@ class TopicListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = requirePerAccountStore();
-    final zulipLocalizations = ZulipLocalizations.of(context);
     final appBarBackgroundColor = colorSwatchFor(
       context,
       store.subscriptions[streamId],
@@ -60,16 +54,6 @@ class TopicListPage extends StatelessWidget {
             streamId: streamId,
             willCenterTitle: willCenterTitle,
           ),
-          actions: [
-            IconButton(
-              icon: const Icon(ZulipIcons.message_feed),
-              tooltip: zulipLocalizations.channelFeedButtonTooltip,
-              onPressed: () => Get.toNamed<dynamic>(
-                AppRoutes.topicList,
-                arguments: {'narrow': ChannelNarrow(streamId)},
-              ),
-            ),
-          ],
         ),
         body: TopicList(streamId: streamId),
       ),

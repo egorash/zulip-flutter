@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:macos_haptic_feedback/macos_haptic_feedback.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../api/exception.dart';
@@ -26,6 +28,14 @@ import '../widgets/dialog.dart';
 /// But they don't belong in `lib/api/`, because they also interact with widgets
 /// in order to present success or error feedback to the user through the UI.
 abstract final class ZulipAction {
+  static void triggerFeedback() {
+    if (Platform.isAndroid || Platform.isIOS) {
+      HapticFeedback.vibrate();
+    } else if (Platform.isMacOS) {
+      MacosHapticFeedback().generic();
+    }
+  }
+
   /// Mark the given narrow as read,
   /// showing feedback to the user on progress or failure.
   ///
