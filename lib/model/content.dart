@@ -2247,8 +2247,8 @@ class _ZulipContentParser {
 
     if (localName == 'p' && className.isEmpty) {
       final parsed = parseBlockInline(element.nodes);
-      if ((debugHtmlNode?.text?.contains('.mp4') ?? false) &&
-          (debugHtmlNode?.text?.contains('assets/stickers/animals') ?? false)) {
+      if ((debugHtmlNode?.text?.contains('.webp') ?? false) &&
+          (debugHtmlNode?.text?.contains('assets/stickers/animals_webp') ?? false)) {
         return StickerNode(debugHtmlNode: debugHtmlNode, nodes: []);
       }
       return ParagraphNode(

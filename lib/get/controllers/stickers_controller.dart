@@ -9,10 +9,12 @@ class StickersController extends GetxController {
   @override
   void onInit() {
     final stickers = <String>[];
-    for (var i = 0; i < 12; i++) {
-      stickers.add('assets/stickers/animals/$i.mp4');
+    for (var i = 0; i < 68; i++) {
+      stickers.add('assets/stickers/animals_webp/$i.webp');
     }
-    myStickers.add(StickerPackModel(id: 0, title: 'Животинки', stickerIds: stickers));
+    myStickers.add(
+      StickerPackModel(id: 0, title: 'Животинки', stickerIds: stickers),
+    );
 
     super.onInit();
   }

@@ -129,6 +129,7 @@ flutter:
     - assets/Source_Sans_3/LICENSE.md
     - assets/fonts/
     - assets/stickers/animals/
+    - assets/stickers/animals_webp/
     - assets/app-icons/zulip-combined.png
 
   fonts:
