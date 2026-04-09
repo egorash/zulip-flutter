@@ -454,6 +454,7 @@ class FocusedMenuState extends State<FocusedMenu> {
   }
 
   Future<void> openMenu(BuildContext context) async {
+    FocusManager.instance.primaryFocus?.unfocus();
     getOffset();
     await Navigator.push(
       context,
@@ -737,6 +738,7 @@ class EmojiRow extends StatelessWidget {
             ),
           ),
         ),
+
         // InkWell(
         //   onTap: () {},
         //   splashFactory: NoSplash.splashFactory,
@@ -763,7 +765,6 @@ class EmojiRow extends StatelessWidget {
         //     ),
         //   ),
         // ),
-
       ],
     );
   }

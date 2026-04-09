@@ -69,6 +69,7 @@ class FixedDestinationContentInput extends StatelessWidget {
         hintText: _hintText(context),
         getDestination: getDestination,
         sendButton: sendButton,
+        stickerButton: SizedBox(),
       ),
     );
   }

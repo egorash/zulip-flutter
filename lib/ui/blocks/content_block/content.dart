@@ -25,22 +25,27 @@ class MessageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = this.content;
+    final isSticker = content is ZulipContent
+        ? content.nodes.whereType<StickerNode>().isNotEmpty
+        : false;
     return Container(
       margin: EdgeInsets.only(
         top: 4,
         right: isMe ? 0 : 40,
         left: isMe ? 40 : 0,
       ),
-      padding: EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: isMe
-            ? Color.fromRGBO(62, 106, 151, 1)
-            : Color.fromRGBO(33, 48, 64, 1),
-        borderRadius: BorderRadius.circular(12).copyWith(
-          topLeft: isMe ? null : Radius.circular(0),
-          topRight: !isMe ? null : Radius.circular(0),
-        ),
-      ),
+      padding: isSticker ? null : EdgeInsets.symmetric(horizontal: 12),
+      decoration: isSticker
+          ? null
+          : BoxDecoration(
+              color: isMe
+                  ? Color.fromRGBO(62, 106, 151, 1)
+                  : Color.fromRGBO(33, 48, 64, 1),
+              borderRadius: BorderRadius.circular(12).copyWith(
+                topLeft: isMe ? null : Radius.circular(0),
+                topRight: !isMe ? null : Radius.circular(0),
+              ),
+            ),
       child: InheritedMessage(
         message: message,
         child: DefaultTextStyle(

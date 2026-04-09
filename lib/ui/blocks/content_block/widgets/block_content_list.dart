@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../model/content.dart';
+import '../../compose_box_block/widgets/stickers/sticker_card.dart';
 import 'code_block.dart';
 import 'heading.dart';
 import 'helpers.dart';
@@ -39,6 +40,12 @@ class BlockContentList extends StatelessWidget {
               const Text(''),
             ThematicBreakNode() => const ThematicBreak(),
             ParagraphNode() => Paragraph(node: node, isMe: isMe),
+            StickerNode() => StickerCard(
+              assetPath: node.debugHtmlText
+                  .substring(3)
+                  .substring(0, node.debugHtmlText.length - 7),
+              size: 130,
+            ),
             HeadingNode() => Heading(node: node, isMe: isMe),
             QuotationNode() => Quotation(node: node, isMe: isMe),
             ListNode() => ListNodeWidget(node: node),

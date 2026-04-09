@@ -24,6 +24,7 @@ import '../../../../widgets/inset_shadow.dart';
 import '../../../../values/theme.dart';
 import '../../compose_box_block.dart';
 import '../../compose_box_service.dart';
+import '../stickers/stickers_screen.dart';
 
 class ContentInput extends StatefulWidget {
   const ContentInput({
@@ -33,6 +34,7 @@ class ContentInput extends StatefulWidget {
     required this.getDestination,
     this.hintText,
     this.sendButton,
+    this.stickerButton,
     this.enabled = true,
     this.showPrefix = true,
   });
@@ -43,6 +45,7 @@ class ContentInput extends StatefulWidget {
   final bool enabled;
   final bool showPrefix;
   final MessageDestination Function() getDestination;
+  final Widget? stickerButton;
   final Widget? sendButton;
 
   static double maxHeight(BuildContext context) {
@@ -341,6 +344,27 @@ class _ContentInputState extends State<ContentInput> {
     return KeyEventResult.ignored;
   }
 
+  void _showStickers() {
+    showModalBottomSheet(
+      context: context,
+      useSafeArea: true,
+      isScrollControlled: true,
+      useRootNavigator: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => ClipRRect(
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+        child: Container(
+          height: MediaQuery.of(context).size.height * 0.8,
+          //decoration: const BoxDecoration(color: AppColors.white),
+          child: StickersScreen(narrow: widget.narrow),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final designVariables = DesignVariables.of(context);
@@ -497,6 +521,18 @@ class _ContentInputState extends State<ContentInput> {
                   ),
                 ),
               ),
+              if (widget.stickerButton != null)
+                SizedBox(
+                  width: composeButtonSize,
+                  child: IconButton(
+                    tooltip: 'Стикеры',
+                    icon: Icon(
+                      Icons.insert_emoticon,
+                      color: designVariables.foreground.withFadedAlpha(0.5),
+                    ),
+                    onPressed: _showStickers,
+                  ),
+                ),
               if (widget.sendButton != null) widget.sendButton!,
             ],
           ),

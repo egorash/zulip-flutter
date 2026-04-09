@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import '../notifications/push_notification_service.dart';
+import 'controllers/stickers_controller.dart';
 import 'services/account_service.dart';
 import 'services/domains/channels/channels_service.dart';
 import 'services/domains/presence/presence_service.dart';
@@ -79,10 +80,7 @@ class AppPages {
       page: () => const AddAccountPage(),
       binding: LoginBinding(),
     ),
-    GetPage<dynamic>(
-      name: AppRoutes.login,
-      page: () => const LoginPage(),
-    ),
+    GetPage<dynamic>(name: AppRoutes.login, page: () => const LoginPage()),
     GetPage<dynamic>(
       name: AppRoutes.home,
       page: () {
@@ -184,5 +182,7 @@ class InitialBinding extends Bindings {
     );
     Get.lazyPut<TopicListController>(() => TopicListController(streamId: 0));
     Get.lazyPut<ProfileController>(() => ProfileController(userId: 0));
+
+    Get.lazyPut<StickersController>(() => StickersController());
   }
 }
