@@ -132,7 +132,7 @@ class _AnswerMessageBlockState extends State<AnswerMessageBlock> {
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: 4,
+                    spacing: 0,
                     children: [
                       Text(
                         'В ответ ${answerMessage.name}',
