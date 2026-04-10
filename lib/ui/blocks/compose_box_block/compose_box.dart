@@ -285,7 +285,7 @@ class ComposeContentController
     notifyListeners(); // _quoteAndReplies change could affect validationErrors
     //insertPadded(placeholder);
 
-    answerMessage.replyText = placeholder;
+   //answerMessage.replyText = placeholder;
     return tag;
   }
 
