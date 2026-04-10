@@ -162,7 +162,12 @@ class _ContentInputState extends State<ContentInput> {
     }
 
     final destination = widget.getDestination();
-    final content = controller.content.textNormalized;
+    var content = controller.content.textNormalized;
+    if (controller.content.answerMessage.isNotEmpty) {
+      content = controller.content.answerMessage.replyText + content;
+    }
+
+    controller.content.cancelAnswerMessage();
 
     controller.content.clear();
 

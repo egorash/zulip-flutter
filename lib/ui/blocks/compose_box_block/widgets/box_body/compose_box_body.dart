@@ -66,7 +66,8 @@ abstract class ComposeBoxBody extends StatelessWidget {
             data: inputThemeData,
             child: Column(
               children: [
-                ?topicInput,
+                // Стили сообщения для ответа
+                 ?topicInput,
                 buildContentInput(sendButton ?? SizedBox.shrink()),
               ],
             ),
