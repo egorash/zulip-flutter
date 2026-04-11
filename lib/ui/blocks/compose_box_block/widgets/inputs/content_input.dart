@@ -373,7 +373,7 @@ class _ContentInputState extends State<ContentInput> {
                         Icons.file_present_outlined,
                         color: designVariables.foreground.withFadedAlpha(0.5),
                       ),
-                      title: Text('Файл'),
+                      title: Text('Файл', style: TextStyle(fontSize: 16)),
                       onPressed: () {
                         _handleAddIconPress(
                           context,
@@ -386,7 +386,7 @@ class _ContentInputState extends State<ContentInput> {
                         ZulipIcons.image,
                         color: designVariables.foreground.withFadedAlpha(0.5),
                       ),
-                      title: Text('Фото или видео'),
+                      title: Text('Медиа', style: TextStyle(fontSize: 16)),
                       onPressed: () {
                         _handleAddIconPress(
                           context,
@@ -400,7 +400,7 @@ class _ContentInputState extends State<ContentInput> {
                           ZulipIcons.camera,
                           color: designVariables.foreground.withFadedAlpha(0.5),
                         ),
-                        title: Text('Камера'),
+                        title: Text('Камера', style: TextStyle(fontSize: 16)),
                         onPressed: () {
                           _handleAddIconPress(
                             context,

@@ -68,7 +68,7 @@ class CustomSwipeToState extends State<CustomSwipeTo>
       },
       onHorizontalDragUpdate: (details) {
         if (!_isDragging || _controller.isAnimating) return;
-        double newOffset = _currentOffset.dx + details.delta.dx / 1000;
+        double newOffset = _currentOffset.dx + details.delta.dx / 500;
         newOffset = newOffset.clamp(-1.0, 1.0);
         setState(() {
           _currentOffset = Offset(newOffset, 0);
@@ -89,21 +89,24 @@ class CustomSwipeToState extends State<CustomSwipeTo>
         children: [
           Align(
             alignment: Alignment.centerRight,
-            child: AnimatedOpacity(
-              opacity: _currentOffset.dx > 0
-                  ? 0
-                  : (_currentOffset.dx.abs() / 0.2).clamp(0, 1),
-              duration: Duration(
-                milliseconds: widget.animationDuration.inMilliseconds ~/ 2,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: AnimatedOpacity(
+                opacity: _currentOffset.dx > 0
+                    ? 0
+                    : (_currentOffset.dx.abs() / 0.2).clamp(0, 1),
+                duration: Duration(
+                  milliseconds: widget.animationDuration.inMilliseconds ~/ 2,
+                ),
+                curve: Curves.decelerate,
+                child:
+                    widget.leftSwipeWidget ??
+                    Icon(
+                      widget.iconOnLeftSwipe,
+                      size: 26,
+                      color: Theme.of(context).iconTheme.color,
+                    ),
               ),
-              curve: Curves.decelerate,
-              child:
-                  widget.leftSwipeWidget ??
-                  Icon(
-                    widget.iconOnLeftSwipe,
-                    size: 26,
-                    color: Theme.of(context).iconTheme.color,
-                  ),
             ),
           ),
           FractionalTranslation(
