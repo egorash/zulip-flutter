@@ -92,119 +92,67 @@ class _FocusedMessageMenuState extends State<FocusedMessageMenu> {
               opacity: animation,
               child: Builder(
                 builder: (context) {
-                  //RxBool isDeleting = false.obs;
-
                   return _FocusedMessageMenuDetails(
                     message: widget.item,
                     itemExtent: null,
                     menuBoxDecoration: null,
                     childOffset: childOffset,
                     childSize: childSize,
-                    menuItems:
-                        // isDeleting.value
-                        //     ? <FocusedMenuItem>[
-                        //         FocusedMenuItem(
-                        //           title: Text(
-                        //             'Удалить у всех',
-                        //             // style: AppText.semibold14.copyWith(
-                        //             //   color: AppColors.high,
-                        //             // ),
-                        //           ),
-                        //           trailingIcon: null,
-                        //           onPressed: () {
-                        //             // Get.find<DialogController>().deleteMessage(
-                        //             //   widget.model,
-                        //             //   false,
-                        //             // );
-                        //           },
-                        //         ),
-                        //         FocusedMenuItem(
-                        //           title: Text(
-                        //             'Удалить у себя',
-                        //             // style: AppText.semibold14.copyWith(
-                        //             //   color: AppColors.high,
-                        //             // ),
-                        //           ),
-                        //           trailingIcon: null,
-                        //           onPressed: () {
-                        //             // Get.find<DialogController>().deleteMessage(
-                        //             //   widget.model,
-                        //             //   true,
-                        //             // );
-                        //           },
-                        //         ),
-                        //       ]
-                        //     :
-                        <FocusedMenuItem>[
-                          FocusedMenuItem(
-                            title: Text(
-                              'Ответить',
-                              style: TextStyle(fontSize: 16),
-                              // style: AppText.semibold14.copyWith(
-                              //   color: AppColors.high,
-                              // ),
-                            ),
-                            trailingIcon: Icon(Icons.question_answer),
-                            onPressed: () {
-                              MessagesListService.answerMessage(widget.item);
-                            },
+                    menuItems: <FocusedMenuItem>[
+                      FocusedMenuItem(
+                        title: Text('Ответить', style: TextStyle(fontSize: 16)),
+                        trailingIcon: Icon(Icons.question_answer),
+                        onPressed: () {
+                          MessagesListService.answerMessage(widget.item);
+                        },
+                      ),
+                      FocusedMenuItem(
+                        title: Text(
+                          'Копировать',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        trailingIcon: Icon(Icons.copy),
+                        onPressed: () {
+                          MessagesListService.copyMessage(widget.item);
+                        },
+                      ),
+                      FocusedMenuItem(
+                        title: Text(
+                          'Копировать ссылку',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        trailingIcon: Icon(Icons.link),
+                        onPressed: () {
+                          MessagesListService.copyMessageLink(widget.item);
+                        },
+                      ),
+                      if (MessagesListService.getShouldShowEditButton(
+                        widget.item,
+                      ))
+                        FocusedMenuItem(
+                          title: Text(
+                            'Изменить',
+                            style: TextStyle(fontSize: 16),
                           ),
-                          FocusedMenuItem(
-                            title: Text(
-                              'Копировать',
-                              style: TextStyle(fontSize: 16),
-                              // style: AppText.semibold14.copyWith(
-                              //   color: AppColors.high,
-                              // ),
-                            ),
-                            trailingIcon: Icon(Icons.copy),
-                            onPressed: () {
-                              MessagesListService.copyMessage(widget.item);
-                            },
-                          ),
-                          FocusedMenuItem(
-                            title: Text(
-                              'Копировать ссылку',
-                              style: TextStyle(fontSize: 14),
-                              // style: AppText.semibold14.copyWith(
-                              //   color: AppColors.high,
-                              // ),
-                            ),
-                            trailingIcon: Icon(Icons.link),
-                            onPressed: () {
-                              MessagesListService.copyMessageLink(widget.item);
-                            },
-                          ),
-                          if (MessagesListService.getShouldShowEditButton(
-                            widget.item,
-                          ))
-                            FocusedMenuItem(
-                              title: Text(
-                                'Изменить',
-                                style: TextStyle(fontSize: 16),
-                                // style: AppText.semibold14.copyWith(
-                                //   color: AppColors.high,
-                                // ),
-                              ),
-                              trailingIcon: Icon(Icons.edit),
-                              onPressed: () {
-                                MessagesListService.editMessage(widget.item);
-                              },
-                            ),
-                          // FocusedMenuItem(
-                          //   title: Text(
-                          //     'Удалить',
-                          //     // style: AppText.semibold14
-                          //     //     .copyWith(color: AppColors.high),
-                          //   ),
-                          //   trailingIcon: Icon(Icons.delete),
-                          //   onPressed: () {
-                          //     isDeleting.value = true;
-                          //     setState(() {});
-                          //   },
-                          //   shouldPop: false,
-                          // ),
-                        ],
+                          trailingIcon: Icon(Icons.edit),
+                          onPressed: () {
+                            MessagesListService.editMessage(widget.item);
+                          },
+                        ),
+                      // FocusedMenuItem(
+                      //   title: Text(
+                      //     'Удалить',
+                      //     // style: AppText.semibold14
+                      //     //     .copyWith(color: AppColors.high),
+                      //   ),
+                      //   trailingIcon: Icon(Icons.delete),
+                      //   onPressed: () {
+                      //     isDeleting.value = true;
+                      //     setState(() {});
+                      //   },
+                      //   shouldPop: false,
+                      // ),
+                    ],
                     blurSize: 20,
                     menuWidth: 200,
                     blurBackgroundColor: Colors.black54,
@@ -281,20 +229,20 @@ class _FocusedMessageMenuDetailsState
     final isLeft =
         widget.isLeftPos ?? (widget.childOffset.dx + maxMenuWidth) < size.width;
     final leftOffset = isLeft
-        ? widget.childOffset.dx
-        : (widget.childOffset.dx - maxMenuWidth + widget.childSize!.width);
+        ? widget.childOffset.dx + 12
+        : (widget.childOffset.dx - maxMenuWidth + widget.childSize!.width - 12);
 
-    final addictionalHeight =
-        (widget.childOffset.dy + maxMenuHeight) > size.height
-        ? size.height - (widget.childOffset.dy + maxMenuHeight)
-        : 0;
-
-    final topOffset =
+    double topOffset =
         widget.childOffset.dy +
         widget.childSize!.height +
         widget.menuOffset! +
-        emojiHeight +
-        addictionalHeight;
+        emojiHeight + 4;
+    double addictionalHeight = 0;
+
+    if (topOffset + menuHeight + 60 > size.height) {
+      addictionalHeight = size.height - (topOffset + menuHeight + 60);
+      topOffset += addictionalHeight;
+    }
 
     return Scaffold(
       backgroundColor: const Color.fromRGBO(0, 0, 0, 0),
@@ -680,7 +628,7 @@ class _FocusedMenuCard extends StatelessWidget {
   }
 }
 
-class EmojiRow extends StatelessWidget {
+class EmojiRow extends StatefulWidget {
   final MessageListMessageItem message;
   final VoidCallback onExpand;
   final bool isExpanded;
@@ -691,13 +639,58 @@ class EmojiRow extends StatelessWidget {
     required this.isExpanded,
   });
 
-  // List<EmojiCandidate> _getCatigories(PerAccountStore store) {
-  //   final cat = store.emoji
-  //   return [];
-  // }
+  @override
+  State<EmojiRow> createState() => _EmojiRowState();
+}
+
+class _EmojiRowState extends State<EmojiRow> with TickerProviderStateMixin {
+  late AnimationController _heightController;
+  late AnimationController _widthController;
+  late Animation<double> _heightAnimation;
+  late Animation<double> _widthAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _widthController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _heightController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _heightAnimation = Tween<double>(begin: 56, end: 250).animate(
+      CurvedAnimation(parent: _heightController, curve: Curves.fastOutSlowIn),
+    );
+    _widthAnimation = Tween<double>(begin: 0, end: 320).animate(
+      CurvedAnimation(parent: _widthController, curve: Curves.fastOutSlowIn),
+    );
+
+    if (widget.isExpanded) {
+      _widthController.value = 1.0;
+    } else {
+      _widthController.forward();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    if (widget.isExpanded) {
+      _heightController.forward();
+    }
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    _widthController.dispose();
+    super.dispose();
+  }
 
   List<EmojiCandidate> _getPopularEmojis(PerAccountStore store) {
-    return isExpanded
+    return widget.isExpanded
         ? store.groupEmojis().values.expand((v) => v).toList()
         : store.popularEmojiCandidates().take(6).toList();
   }
@@ -712,7 +705,7 @@ class EmojiRow extends StatelessWidget {
 
   bool _hasSelfVote(EmojiCandidate emoji) {
     final store = requirePerAccountStore();
-    return message.message.reactions?.aggregated.any(
+    return widget.message.message.reactions?.aggregated.any(
           (r) =>
               r.reactionType == ReactionType.unicodeEmoji &&
               r.emojiCode == emoji.emojiCode &&
@@ -726,36 +719,95 @@ class EmojiRow extends StatelessWidget {
     final store = requirePerAccountStore();
     final designVariables = DesignVariables.of(context);
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.fastOutSlowIn,
-      width: 320,
-      height: isExpanded ? 250 : 50,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: designVariables.background,
-        borderRadius: BorderRadius.circular(isExpanded ? 20 : 30),
-      ),
-      child: ClipRect(
-        child: !isExpanded
-            ? Row(
-                spacing: 4,
-                children: [
-                  ..._getPopularEmojis(
-                    store,
-                  ).take(6).map((emoji) => _buildEmojiItem(emoji, context)),
-                  _buildExpandButton(),
-                ],
-              )
-            : EmojiPickerGrid(
-                sections: _getAllEmojis(store),
-                itemBuilder: (emoji) => _buildEmojiItem(emoji, context),
+    return AnimatedBuilder(
+      animation: _heightController,
+      builder: (context, child) {
+        return AnimatedBuilder(
+          animation: _widthController,
+          builder: (context, child) {
+            return Container(
+              height: _heightAnimation.value,
+              width: _widthAnimation.value,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: designVariables.background,
+                borderRadius: BorderRadius.circular(
+                  widget.isExpanded ? 20 : 30,
+                ),
               ),
-      ),
+              child: ClipRect(
+                child: !widget.isExpanded
+                    ? SizedBox(
+                        key: ValueKey('row'),
+                        height: 50,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            spacing: 4,
+                            children: [
+                              ..._buildAnimatedEmojis(
+                                _getPopularEmojis(store).take(6).toList(),
+                              ),
+                              _buildExpandButton(),
+                            ],
+                          ),
+                        ),
+                      )
+                    : EmojiPickerGrid(
+                        key: ValueKey('grid'),
+                        sections: _getAllEmojis(store),
+                        itemBuilder: (emoji) => _buildEmojiItem(emoji),
+                      ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
-  Widget _buildEmojiItem(EmojiCandidate emoji, BuildContext context) {
+  List<Widget> _buildAnimatedEmojis(List<EmojiCandidate> emojis) {
+    const double stagger = 0.08;
+    const double duration = 0.5;
+
+    final List<Widget> widgets = [];
+
+    for (int i = 0; i < emojis.length; i++) {
+      final start = i * stagger;
+      final end = start + duration;
+
+      final animation = CurvedAnimation(
+        parent: _widthController,
+        curve: Interval(
+          start.clamp(0.0, 1.0),
+          end.clamp(0.0, 1.0),
+          curve: Curves.easeOutBack,
+        ),
+      );
+
+      widgets.add(
+        AnimatedBuilder(
+          animation: animation,
+          builder: (context, child) {
+            final value = animation.value;
+
+            return Opacity(
+              opacity: value.clamp(0.0, 1.0),
+              child: Transform.translate(
+                offset: Offset(0, (1 - value) * 20), // снизу вверх
+                child: Transform.scale(scale: value, child: child),
+              ),
+            );
+          },
+          child: _buildEmojiItem(emojis[i]),
+        ),
+      );
+    }
+
+    return widgets;
+  }
+
+  Widget _buildEmojiItem(EmojiCandidate emoji) {
     final isSelfVoted = _hasSelfVote(emoji);
     final designVariables = DesignVariables.of(context);
 
@@ -763,7 +815,7 @@ class EmojiRow extends StatelessWidget {
       onTap: () {
         MessagesListService.addOrRemoveReaction(
           isSelfVoted: isSelfVoted,
-          messageId: message.message.id,
+          messageId: widget.message.message.id,
           emoji: emoji,
         );
         Get.back();
@@ -799,7 +851,7 @@ class EmojiRow extends StatelessWidget {
   Widget _buildExpandButton() {
     return InkWell(
       onTap: () {
-        onExpand();
+        widget.onExpand();
       },
       child: Container(
         width: 40,
@@ -890,9 +942,7 @@ class _EmojiPickerGridState extends State<EmojiPickerGrid> {
     return Container(
       height: 40,
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Colors.white54),
-        ),
+        border: Border(bottom: BorderSide(color: Colors.white54)),
       ),
       child: ListView(
         scrollDirection: Axis.horizontal,
@@ -960,35 +1010,38 @@ class _EmojiPickerGridState extends State<EmojiPickerGrid> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _buildCategoryBar(),
-        Expanded(
-          child: CustomScrollView(
-            controller: _scrollController,
-            slivers: [
-              for (final section in widget.sections) ...[
-                SliverToBoxAdapter(child: _buildHeader(section.category)),
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  sliver: SliverGrid(
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final emoji = section.emojis[index];
-                      return widget.itemBuilder(emoji);
-                    }, childCount: section.emojis.length),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 7,
-                          mainAxisSpacing: 4,
-                          crossAxisSpacing: 4,
-                        ),
+    return SizedBox(
+      height: 250,
+      child: Column(
+        children: [
+          _buildCategoryBar(),
+          Expanded(
+            child: CustomScrollView(
+              controller: _scrollController,
+              slivers: [
+                for (final section in widget.sections) ...[
+                  SliverToBoxAdapter(child: _buildHeader(section.category)),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    sliver: SliverGrid(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final emoji = section.emojis[index];
+                        return widget.itemBuilder(emoji);
+                      }, childCount: section.emojis.length),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 7,
+                            mainAxisSpacing: 4,
+                            crossAxisSpacing: 4,
+                          ),
+                    ),
                   ),
-                ),
+                ],
               ],
-            ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
