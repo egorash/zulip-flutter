@@ -50,6 +50,7 @@ class _FocusedMessageMenuState extends State<FocusedMessageMenu> {
   GlobalKey containerKey = GlobalKey();
   Offset childOffset = const Offset(0, 0);
   Size? childSize;
+  final _heroKey = UniqueKey();
 
   void getOffset() {
     RenderBox renderBox =
@@ -74,7 +75,10 @@ class _FocusedMessageMenuState extends State<FocusedMessageMenu> {
         HapticFeedback.lightImpact();
         openMenu(context);
       },
-      child: widget.child,
+      child: Hero(
+        tag: _heroKey,
+        child: DefaultTextStyle(style: TextStyle(), child: widget.child),
+      ),
     );
   }
 
@@ -93,6 +97,7 @@ class _FocusedMessageMenuState extends State<FocusedMessageMenu> {
               child: Builder(
                 builder: (context) {
                   return _FocusedMessageMenuDetails(
+                    heroKey: _heroKey,
                     message: widget.item,
                     itemExtent: null,
                     menuBoxDecoration: null,
@@ -174,6 +179,7 @@ class _FocusedMessageMenuState extends State<FocusedMessageMenu> {
 }
 
 class _FocusedMessageMenuDetails extends StatefulWidget {
+  final UniqueKey heroKey;
   final List<FocusedMenuItem> menuItems;
   final MessageListMessageItem message;
   final BoxDecoration? menuBoxDecoration;
@@ -189,6 +195,7 @@ class _FocusedMessageMenuDetails extends StatefulWidget {
   final bool? isLeftPos;
 
   const _FocusedMessageMenuDetails({
+    required this.heroKey,
     required this.menuItems,
     required this.message,
     required this.child,
@@ -236,7 +243,8 @@ class _FocusedMessageMenuDetailsState
         widget.childOffset.dy +
         widget.childSize!.height +
         widget.menuOffset! +
-        emojiHeight + 4;
+        emojiHeight +
+        4;
     double addictionalHeight = 0;
 
     if (topOffset + menuHeight + 60 > size.height) {
@@ -267,7 +275,7 @@ class _FocusedMessageMenuDetailsState
           ),
           if (_showActionButtons)
             Positioned(
-              top: topOffset,
+              top: topOffset - emojiHeight,
               left: leftOffset,
               child: TweenAnimationBuilder(
                 duration: const Duration(milliseconds: 200),
@@ -314,7 +322,7 @@ class _FocusedMessageMenuDetailsState
               ),
             ),
           Positioned(
-            top: widget.childOffset.dy + addictionalHeight,
+            top: widget.childOffset.dy + addictionalHeight - emojiHeight,
             left: widget.childOffset.dx,
             child: Column(
               crossAxisAlignment: isLeft
@@ -340,7 +348,13 @@ class _FocusedMessageMenuDetailsState
                   child: SizedBox(
                     width: widget.childSize!.width,
                     height: widget.childSize!.height,
-                    child: widget.child,
+                    child: Hero(
+                      tag: widget.heroKey,
+                      child: DefaultTextStyle(
+                        style: TextStyle(),
+                        child: widget.child,
+                      ),
+                    ),
                   ),
                 ),
               ],
