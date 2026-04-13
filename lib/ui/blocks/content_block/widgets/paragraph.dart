@@ -4,10 +4,18 @@ import '../../../../model/content.dart';
 import 'helpers.dart';
 
 class Paragraph extends StatelessWidget {
-  const Paragraph({super.key, required this.node, this.isMe = false});
+  const Paragraph({
+    super.key,
+    required this.node,
+    this.isMe = false,
+    this.maxLines,
+    this.textOverflow,
+  });
 
   final bool isMe;
   final ParagraphNode node;
+  final int? maxLines;
+  final TextOverflow? textOverflow;
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +27,8 @@ class Paragraph extends StatelessWidget {
       node: node,
       style: DefaultTextStyle.of(context).style,
       textAlign: isMe ? TextAlign.start : TextAlign.start,
+      maxLines: maxLines,
+      textOverflow: textOverflow,
     );
 
     final needPadding = node.nodes

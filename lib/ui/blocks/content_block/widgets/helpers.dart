@@ -58,6 +58,8 @@ Widget contentBuildBlockInlineContainer({
   required TextStyle style,
   required BlockInlineContainerNode node,
   TextAlign? textAlign,
+  int? maxLines,
+  TextOverflow? textOverflow,
 }) {
   if (node.links == null) {
     return InlineContent(
@@ -66,6 +68,8 @@ Widget contentBuildBlockInlineContainer({
       style: style,
       nodes: node.nodes,
       textAlign: textAlign,
+      maxLines: maxLines,
+      textOverflow: textOverflow,
     );
   }
   return BlockInlineContainer(

@@ -50,6 +50,8 @@ class InlineContent extends StatelessWidget {
     required this.style,
     required this.nodes,
     this.textAlign,
+    this.maxLines,
+    this.textOverflow,
   }) {
     assert(style.fontSize != null);
     assert(
@@ -76,12 +78,19 @@ class InlineContent extends StatelessWidget {
   final TextAlign? textAlign;
 
   final List<InlineContentNode> nodes;
+  final int? maxLines;
+  final TextOverflow? textOverflow;
 
   late final _InlineContentBuilder _builder;
 
   @override
   Widget build(BuildContext context) {
-    return Text.rich(_builder.build(context), textAlign: textAlign);
+    return Text.rich(
+      _builder.build(context),
+      textAlign: textAlign,
+      maxLines: maxLines,
+      overflow: textOverflow,
+    );
   }
 }
 

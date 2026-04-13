@@ -12,12 +12,16 @@ class BlockInlineContainer extends StatefulWidget {
     required this.style,
     required this.nodes,
     this.textAlign,
+    this.maxLines,
+    this.textOverflow,
   });
 
   final List<LinkNode> links;
   final TextStyle style;
   final List<InlineContentNode> nodes;
   final TextAlign? textAlign;
+  final int? maxLines;
+  final TextOverflow? textOverflow;
 
   @override
   State<BlockInlineContainer> createState() => _BlockInlineContainerState();
@@ -80,6 +84,8 @@ class _BlockInlineContainerState extends State<BlockInlineContainer> {
       style: widget.style,
       nodes: nodes,
       textAlign: widget.textAlign,
+      maxLines: widget.maxLines,
+      textOverflow: widget.textOverflow,
     );
   }
 }
