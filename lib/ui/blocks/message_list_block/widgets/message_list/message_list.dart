@@ -135,6 +135,7 @@ class MessageListState extends State<MessageList> {
       final newAnchor = NumericAnchor(id);
 
       widget.onNarrowChanged(widget.narrow);
+      _model?.dispose();
       _initModel(StoreService.to.requireStore, newAnchor);
     }
   }
@@ -194,10 +195,12 @@ class MessageListState extends State<MessageList> {
       widget.onNarrowChanged(model.narrow);
     }
     // TODO when model reset, reset scroll
-    setState(() {
-      // The actual state lives in the [MessageListView] model.
-      // This method was called because that just changed.
-    });
+    if (mounted) {
+      setState(() {
+        // The actual state lives in the [MessageListView] model.
+        // This method was called because that just changed.
+      });
+    }
 
     if (!_prevFetched && model.fetched && model.messages.isEmpty) {
       // If the fetch came up empty, there's nothing to read,
