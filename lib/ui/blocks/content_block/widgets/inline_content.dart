@@ -52,6 +52,7 @@ class InlineContent extends StatelessWidget {
     this.textAlign,
     this.maxLines,
     this.textOverflow,
+    this.isAnswer = false,
   }) {
     assert(style.fontSize != null);
     assert(
@@ -79,6 +80,7 @@ class InlineContent extends StatelessWidget {
 
   final List<InlineContentNode> nodes;
   final int? maxLines;
+  final bool isAnswer;
   final TextOverflow? textOverflow;
 
   late final _InlineContentBuilder _builder;
@@ -178,20 +180,25 @@ class _InlineContentBuilder {
 
       case LinkNode():
         if (_isImageUrl(node.url)) {
-          return const TextSpan(text: '');
+          return const TextSpan(text: '*изображение*');
         }
         final recognizer = widget.linkRecognizers?[node];
         assert(recognizer != null);
         _pushRecognizer(recognizer);
-        // final result = _buildNodes(
-        //   node.nodes,
-        //   style: TextStyle(color: ContentTheme.of(_context!).colorLink),
-        // );
-        final result = TextSpan(
-          text: '',
-          style: TextStyle(color: ContentTheme.of(_context!).colorLink),
-          recognizer: TapGestureRecognizer()..onTap = () => {},
-        );
+        InlineSpan result;
+        if (node.url.contains('narrow')) {
+          result = TextSpan(
+            text: '',
+            style: TextStyle(color: ContentTheme.of(_context!).colorLink),
+            recognizer: TapGestureRecognizer()..onTap = () => {},
+          );
+        } else {
+          result = _buildNodes(
+            node.nodes,
+            context,
+            style: TextStyle(color: ContentTheme.of(_context!).colorLink),
+          );
+        }
         _popRecognizer();
         return result;
 
@@ -199,38 +206,51 @@ class _InlineContentBuilder {
         return _buildInlineCode(node, context);
 
       case MentionNode():
+        final link =
+            widget.nodes.firstWhereOrNull((e) => e is LinkNode) as LinkNode?;
+        final isAnswer = (link?.url.contains('narrow') ?? false);
         return TextSpan(
           children: [
             WidgetSpan(
               alignment: PlaceholderAlignment.baseline,
               baseline: TextBaseline.alphabetic,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Mention(ambientTextStyle: widget.style, node: node),
-                  if ((widget.nodes.firstWhereOrNull((e) => e is LinkNode)) !=
-                      null)
-                    Text.rich(
-                      TextSpan(
-                        text: ' Перейти',
-                        style: TextStyle(
-                          color: ContentTheme.of(_context!).colorLink,
+              child: isAnswer
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Mention(
+                          ambientTextStyle: widget.style,
+                          node: node,
+                          isAnswer: isAnswer,
                         ),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () {
-                            final url =
-                                (widget.nodes.firstWhereOrNull(
-                                          (e) => e is LinkNode,
-                                        )
-                                        as LinkNode?)
-                                    ?.url;
-                            final id = url!.split('/').last;
-                            MessageList.ancestorOf(context).scrollToMessage(id);
-                          },
-                      ),
-                    ),
-                ],
-              ),
+                        if ((widget.nodes.firstWhereOrNull(
+                              (e) => e is LinkNode,
+                            )) !=
+                            null)
+                          Text.rich(
+                            TextSpan(
+                              text: ' Перейти',
+                              style: TextStyle(
+                                color: ContentTheme.of(_context!).colorLink,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  final url =
+                                      (widget.nodes.firstWhereOrNull(
+                                                (e) => e is LinkNode,
+                                              )
+                                              as LinkNode?)
+                                          ?.url;
+                                  final id = url!.split('/').last;
+                                  MessageList.ancestorOf(
+                                    context,
+                                  ).scrollToMessage(id);
+                                },
+                            ),
+                          ),
+                      ],
+                    )
+                  : Mention(ambientTextStyle: widget.style, node: node),
             ),
           ],
         );

@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../model/content.dart';
@@ -8,11 +9,13 @@ class Paragraph extends StatelessWidget {
     super.key,
     required this.node,
     this.isMe = false,
+    this.isAnswer = false,
     this.maxLines,
     this.textOverflow,
   });
 
   final bool isMe;
+  final bool isAnswer;
   final ParagraphNode node;
   final int? maxLines;
   final TextOverflow? textOverflow;
@@ -23,12 +26,18 @@ class Paragraph extends StatelessWidget {
     // The paragraph has vertical CSS margins, but those have no effect.
     if (node.nodes.isEmpty) return const SizedBox();
 
+    final isAnswerParagraph = isAnswer || ((((node.nodes.firstWhereOrNull((e) => e is LinkNode)) as LinkNode?)
+                ?.url
+                .contains('narrow')) ??
+            false);
+
     final text = contentBuildBlockInlineContainer(
       node: node,
       style: DefaultTextStyle.of(context).style,
       textAlign: isMe ? TextAlign.start : TextAlign.start,
       maxLines: maxLines,
       textOverflow: textOverflow,
+      isAnswer: isAnswerParagraph,
     );
 
     final needPadding = node.nodes

@@ -23,6 +23,7 @@ class BlockContentList extends StatelessWidget {
     super.key,
     required this.nodes,
     this.isMe = false,
+    this.isAnswer = false,
     this.maxLines,
     this.textOverflow,
   });
@@ -31,6 +32,7 @@ class BlockContentList extends StatelessWidget {
   final List<BlockContentNode> nodes;
   final int? maxLines;
   final TextOverflow? textOverflow;
+  final bool isAnswer;
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +51,7 @@ class BlockContentList extends StatelessWidget {
             ParagraphNode() => Paragraph(
               node: node,
               isMe: isMe,
+              isAnswer: isAnswer,
               maxLines: maxLines,
               textOverflow: textOverflow,
             ),

@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -14,6 +15,7 @@ class BlockInlineContainer extends StatefulWidget {
     this.textAlign,
     this.maxLines,
     this.textOverflow,
+    this.isAnswer = false,
   });
 
   final List<LinkNode> links;
@@ -21,6 +23,7 @@ class BlockInlineContainer extends StatefulWidget {
   final List<InlineContentNode> nodes;
   final TextAlign? textAlign;
   final int? maxLines;
+  final bool isAnswer;
   final TextOverflow? textOverflow;
 
   @override
@@ -53,9 +56,18 @@ class _BlockInlineContainerState extends State<BlockInlineContainer> {
   @override
   void initState() {
     nodes = widget.nodes;
-    if (nodes.whereType<UserMentionNode>().toList().isNotEmpty) {
-      nodes = [nodes.first];
-      nodes.add(widget.nodes.firstWhere((e) => e is LinkNode));
+    final isAnswer =
+        widget.isAnswer ||
+        ((((widget.nodes.firstWhereOrNull((e) => e is LinkNode)) as LinkNode?)
+                ?.url
+                .contains('narrow')) ??
+            false);
+
+    if (isAnswer) {
+      if (nodes.whereType<UserMentionNode>().toList().isNotEmpty) {
+        nodes = [nodes.first];
+        nodes.add(widget.nodes.firstWhere((e) => e is LinkNode));
+      }
     }
     super.initState();
     _prepareRecognizers();
