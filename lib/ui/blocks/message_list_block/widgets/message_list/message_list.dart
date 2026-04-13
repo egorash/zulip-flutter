@@ -45,11 +45,17 @@ class MessageList extends StatefulWidget {
   final void Function(Narrow newNarrow) onNarrowChanged;
   final bool? markReadOnScroll;
 
+  static MessageListState ancestorOf(BuildContext context) {
+    final state = context.findAncestorStateOfType<MessageListState>();
+    assert(state != null, 'No MessageListPage ancestor');
+    return state!;
+  }
+
   @override
-  State<StatefulWidget> createState() => _MessageListState();
+  State<StatefulWidget> createState() => MessageListState();
 }
 
-class _MessageListState extends State<MessageList> {
+class MessageListState extends State<MessageList> {
   final GlobalKey _scrollViewKey = GlobalKey();
 
   MessageListView get model => _model!;
@@ -57,6 +63,7 @@ class _MessageListState extends State<MessageList> {
 
   final MessageListScrollController scrollController =
       MessageListScrollController();
+  //final Set<ValueKey<int?>> _itemKeys = {};
 
   final RxBool _scrollToBottomVisible = false.obs;
   final Map<int, bool> _newMessageIds = {};
@@ -83,6 +90,53 @@ class _MessageListState extends State<MessageList> {
     scrollController.dispose();
     _model?.dispose();
     super.dispose();
+  }
+
+  void scrollToMessage(String messageId) {
+    final id = int.tryParse(messageId);
+
+    if (id == null) return;
+
+    Element? messageToFind;
+
+    void visit(Element element) {
+      if (element.widget.key == ValueKey(id)) {
+        messageToFind = element;
+        return;
+      }
+      element.visitChildren((child) => visit(child));
+    }
+
+    Offset? getGlobalPosition(Element element) {
+      final RenderBox? renderBox = element.findRenderObject() as RenderBox?;
+      if (renderBox == null || !renderBox.attached) return null;
+
+      return renderBox.localToGlobal(Offset.zero);
+    }
+
+    final scrollViewElement = _scrollViewKey.currentContext as Element;
+    final scrollViewRenderObject = scrollViewElement.renderObject as RenderBox;
+
+    scrollViewElement.visitChildren((child) => visit(child));
+    if (messageToFind != null &&
+        _isMessageItemInViewport(
+          messageToFind!,
+          scrollViewRenderObject: scrollViewRenderObject,
+        )) {
+      final offset = getGlobalPosition(messageToFind!);
+      if (offset != null) {
+        scrollController.animateTo(
+          scrollController.offset - offset.dy,
+          duration: Duration(milliseconds: 400),
+          curve: Curves.fastLinearToSlowEaseIn,
+        );
+      }
+    } else {
+      final newAnchor = NumericAnchor(id);
+
+      widget.onNarrowChanged(widget.narrow);
+      _initModel(StoreService.to.requireStore, newAnchor);
+    }
   }
 
   void _initModel(PerAccountStore store, Anchor anchor) {

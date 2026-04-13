@@ -51,6 +51,7 @@ class _BlockInlineContainerState extends State<BlockInlineContainer> {
     nodes = widget.nodes;
     if (nodes.whereType<UserMentionNode>().toList().isNotEmpty) {
       nodes = [nodes.first];
+      nodes.add(widget.nodes.firstWhere((e) => e is LinkNode));
     }
     super.initState();
     _prepareRecognizers();

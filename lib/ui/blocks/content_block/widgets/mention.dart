@@ -46,6 +46,7 @@ class Mention extends StatelessWidget {
         if (user case User(:final fullName)) {
           nodes = [TextNode(node.isSilent ? fullName : '@$fullName')];
         }
+
       case UserMentionNode(userId: null):
       case WildcardMentionNode():
     }
@@ -59,7 +60,7 @@ class Mention extends StatelessWidget {
     return Container(
       margin: const EdgeInsetsDirectional.only(start: 10),
       padding: const EdgeInsetsDirectional.only(start: 5),
-      alignment: Alignment.centerLeft,
+      //alignment: Alignment.centerLeft,
       decoration: BoxDecoration(
         border: BorderDirectional(
           start: BorderSide(
