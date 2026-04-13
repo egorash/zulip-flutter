@@ -17,7 +17,6 @@ import '../../../../../../values/theme.dart';
 import '../../../../message_list_block.dart';
 import '../../../sender_row.dart';
 import '../../messages_list_service.dart';
-import 'edit_message_status_row.dart';
 import 'restore_edit_message_gesture_detector.dart';
 
 /// A Zulip message, showing the sender's name and avatar if specified.
@@ -77,6 +76,7 @@ class MessageWithPossibleSender extends StatelessWidget {
         isMe: isMe,
         message: message,
         content: item.content,
+        isEdited: editStateText != null,
       ),
     );
 
@@ -197,28 +197,6 @@ class MessageWithPossibleSender extends StatelessWidget {
                                       messageId: message.id,
                                       reactions: message.reactions!,
                                     ),
-                                  ),
-                                if (editMessageErrorStatus != null)
-                                  EditMessageStatusRow(
-                                    messageId: message.id,
-                                    status: editMessageErrorStatus,
-                                  )
-                                else if (editStateText != null)
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 4),
-                                    child: Text(
-                                      editStateText,
-                                      textAlign: TextAlign.end,
-                                      style: TextStyle(
-                                        color: designVariables.labelEdited,
-                                        fontSize: 12,
-                                        height: (12 / 12),
-                                      ),
-                                    ),
-                                  )
-                                else
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 4),
                                   ),
                               ],
                             ),

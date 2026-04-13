@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../api/model/model.dart';
 import '../../../model/content.dart';
 import '../../themes/content_theme.dart';
+import '../../values/theme.dart';
 import '../../widgets/poll.dart';
 import 'widgets/block_content_list.dart';
 
@@ -16,21 +17,26 @@ class MessageContent extends StatelessWidget {
     required this.isMe,
     required this.message,
     required this.content,
+    required this.isEdited,
   });
 
   final bool isMe;
   final Message message;
   final ZulipMessageContent content;
+  final bool isEdited;
 
   @override
   Widget build(BuildContext context) {
     final content = this.content;
+    final designVariables = DesignVariables.of(context);
+
     return Container(
       margin: EdgeInsets.only(
         top: 4,
         right: isMe ? 0 : 40,
         left: isMe ? 40 : 0,
       ),
+      constraints: isEdited ? BoxConstraints(minWidth: 50) : null,
       padding: EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: isMe
@@ -41,21 +47,43 @@ class MessageContent extends StatelessWidget {
           topRight: !isMe ? null : Radius.circular(0),
         ),
       ),
-      child: InheritedMessage(
-        message: message,
-        child: DefaultTextStyle(
-          style: ContentTheme.of(context).textStylePlainParagraph,
-          child: switch (content) {
-            ZulipContent() => BlockContentList(
-              nodes: content.nodes,
-              isMe: isMe,
+      child: Stack(
+        children: [
+          Align(
+            alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: isEdited ? 12 : 0),
+              child: InheritedMessage(
+                message: message,
+                child: DefaultTextStyle(
+                  style: ContentTheme.of(context).textStylePlainParagraph,
+                  child: switch (content) {
+                    ZulipContent() => BlockContentList(
+                      nodes: content.nodes,
+                      isMe: isMe,
+                    ),
+                    PollContent() => PollWidget(
+                      messageId: message.id,
+                      poll: content.poll,
+                    ),
+                  },
+                ),
+              ),
             ),
-            PollContent() => PollWidget(
-              messageId: message.id,
-              poll: content.poll,
+          ),
+          if (isEdited)
+            Positioned(
+              right: 0,
+              bottom: 2,
+              child: Text(
+                'изм.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: designVariables.labelEdited,
+                ),
+              ),
             ),
-          },
-        ),
+        ],
       ),
     );
   }

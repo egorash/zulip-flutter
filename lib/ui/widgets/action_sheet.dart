@@ -1323,6 +1323,7 @@ class _MessageActionSheetHeader extends StatelessWidget {
               isMe: false,
               message: message,
               content: parseMessageContent(message),
+              isEdited: false,
             ),
           ),
         ],
