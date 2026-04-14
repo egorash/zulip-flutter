@@ -40,8 +40,8 @@ class MessageContent extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: isMe
-            ? Color.fromRGBO(62, 106, 151, 1)
-            : Color.fromRGBO(33, 48, 64, 1),
+            ? designVariables.myMessageBackground
+            : designVariables.otherMessageBackground,
         borderRadius: BorderRadius.circular(12).copyWith(
           topLeft: isMe ? null : Radius.circular(0),
           topRight: !isMe ? null : Radius.circular(0),

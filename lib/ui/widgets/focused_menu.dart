@@ -252,6 +252,8 @@ class _FocusedMessageMenuDetailsState
       topOffset += addictionalHeight;
     }
 
+    final designVariables = DesignVariables.of(context);
+
     return Scaffold(
       backgroundColor: const Color.fromRGBO(0, 0, 0, 0),
       body: Stack(
@@ -297,7 +299,7 @@ class _FocusedMessageMenuDetailsState
                       horizontal: 16,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black,
+                      color: designVariables.background,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: ListView.separated(
@@ -617,6 +619,8 @@ class _FocusedMenuCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final designVariables = DesignVariables.of(context);
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: () {
@@ -628,7 +632,7 @@ class _FocusedMenuCard extends StatelessWidget {
       child: Container(
         alignment: Alignment.center,
         margin: const EdgeInsets.only(bottom: 1),
-        color: item.backgroundColor ?? Colors.black,
+        color: item.backgroundColor ?? designVariables.background,
         height: 48,
         child: Row(
           spacing: 6,
@@ -863,6 +867,8 @@ class _EmojiRowState extends State<EmojiRow> with TickerProviderStateMixin {
   }
 
   Widget _buildExpandButton() {
+    final designVariables = DesignVariables.of(context);
+
     return InkWell(
       onTap: () {
         widget.onExpand();
@@ -870,13 +876,13 @@ class _EmojiRowState extends State<EmojiRow> with TickerProviderStateMixin {
       child: Container(
         width: 40,
         height: 40,
-        decoration: const BoxDecoration(
+        decoration:  BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.white10,
+          color: designVariables.btnBgAttMediumIntInfoNormal,
         ),
-        child: const Icon(
+        child:  Icon(
           ZulipIcons.chevron_down,
-          color: Colors.white,
+          color: designVariables.icon,
           size: 20,
         ),
       ),

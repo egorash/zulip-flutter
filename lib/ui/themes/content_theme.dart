@@ -43,7 +43,7 @@ class ContentTheme extends ThemeExtension<ContentTheme> {
         0.93,
       ).toColor(),
       colorGlobalTimeBorder: const HSLColor.fromAHSL(1, 0, 0, 0.8).toColor(),
-      colorLink: const HSLColor.fromAHSL(1, 200, 1, 0.4).toColor(),
+      colorLink: const Color.fromARGB(255, 24, 58, 208),
       colorMathBlockBorder: const HSLColor.fromAHSL(
         0.15,
         240,
