@@ -572,7 +572,7 @@ class _FocusedMenuDetails extends StatelessWidget {
                   horizontal: 16,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.black,
+                  color: DesignVariables.of(context).composeBoxBg,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: ListView.separated(
@@ -876,11 +876,11 @@ class _EmojiRowState extends State<EmojiRow> with TickerProviderStateMixin {
       child: Container(
         width: 40,
         height: 40,
-        decoration:  BoxDecoration(
+        decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: designVariables.btnBgAttMediumIntInfoNormal,
         ),
-        child:  Icon(
+        child: Icon(
           ZulipIcons.chevron_down,
           color: designVariables.icon,
           size: 20,

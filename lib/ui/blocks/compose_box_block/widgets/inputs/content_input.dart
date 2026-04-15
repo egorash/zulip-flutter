@@ -356,9 +356,10 @@ class _ContentInputState extends State<ContentInput> {
       focusNode: widget.controller.contentFocusNode,
       fieldViewBuilder: (context) => ClipRect(
         child: InsetShadowBox(
+
           top: ContentInput._verticalPadding,
           bottom: 0,
-          color: designVariables.composeBoxBg,
+          color:  designVariables.composeBoxBg,
           child: Row(
             spacing: 4,
             crossAxisAlignment: CrossAxisAlignment.start,

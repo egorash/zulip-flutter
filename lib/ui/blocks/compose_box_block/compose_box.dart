@@ -2,9 +2,13 @@
 // ТУТ ОСТАЛОСЬ ВСЕ ТО, ЧТО Я ПОКА НЕ ПОНЯЛ, КУДА ЗАСУНУТЬ
 
 import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image/image.dart' as img;
+import 'package:path_provider/path_provider.dart';
 
 import '../../../api/model/model.dart';
 import '../../../api/route/messages.dart';
@@ -401,6 +405,38 @@ class FileToUpload {
   final String? mimeType;
 }
 
+bool _isHeicFormat(String? mimeType, String filename) {
+  final lowerMime = mimeType?.toLowerCase() ?? '';
+  final lowerFilename = filename.toLowerCase();
+  return lowerMime == 'image/heic' ||
+      lowerMime == 'image/heif' ||
+      lowerFilename.endsWith('.heic') ||
+      lowerFilename.endsWith('.heif');
+}
+
+Future<FileToUpload> _convertHeicToJpeg(FileToUpload file) async {
+  final bytes = await file.content.expand((l) => l).toList();
+  final Uint8List inputBytes = Uint8List.fromList(bytes);
+  final img.Image? image = img.decodeImage(inputBytes);
+  if (image == null) {
+    return file;
+  }
+  final Uint8List jpegBytes = Uint8List.fromList(
+    img.encodeJpg(image, quality: 90),
+  );
+  final tempDir = await getTemporaryDirectory();
+  final newFile = File(
+    '${tempDir.path}/${file.filename.replaceAll(RegExp(r'\.(heic|heif)$', caseSensitive: false), '')}.jpg',
+  );
+  await newFile.writeAsBytes(jpegBytes);
+  return FileToUpload(
+    content: newFile.openRead(),
+    length: jpegBytes.length,
+    filename: newFile.path.split('/').last,
+    mimeType: 'image/jpeg',
+  );
+}
+
 Future<void> _uploadFiles({
   required BuildContext context,
   required ComposeContentController contentController,
@@ -458,12 +494,15 @@ Future<void> _uploadFiles({
     final FileToUpload(:content, :length, :filename, :mimeType) = file;
     String? url;
     try {
+      final fileToUpload = _isHeicFormat(mimeType, filename)
+          ? await _convertHeicToJpeg(file)
+          : file;
       final result = await uploadFile(
         store.connection,
-        content: content,
-        length: length,
-        filename: filename,
-        contentType: mimeType,
+        content: fileToUpload.content,
+        length: fileToUpload.length,
+        filename: fileToUpload.filename,
+        contentType: fileToUpload.mimeType,
       );
       url = result.url;
     } catch (e) {

@@ -14,6 +14,7 @@ import '../../../../widgets/user.dart';
 import '../../message_list_block.dart';
 import '../search_bar.dart';
 import '../../../profile_block/profile.dart';
+import '../../../group_dm_participants_block/group_dm_participants_page.dart';
 
 class MessageListAppBarTitle extends StatelessWidget {
   const MessageListAppBarTitle({
@@ -204,23 +205,43 @@ class MessageListAppBarTitle extends StatelessWidget {
             ),
           );
         } else {
-          final avatars = otherRecipientIds
-              .map(
-                (userId) => GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      ProfilePage.buildRoute(context: context, userId: userId),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 4),
-                    child: Avatar(userId: userId, size: 32, borderRadius: 4),
-                  ),
+          final dmNarrow = narrow as DmNarrow;
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                GroupDmParticipantsPage.buildRoute(
+                  context: context,
+                  narrow: dmNarrow,
                 ),
-              )
-              .toList();
-          return Row(mainAxisSize: MainAxisSize.min, children: avatars);
+              );
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ...otherRecipientIds
+                    .take(3)
+                    .map(
+                      (userId) => Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: Avatar(
+                          userId: userId,
+                          size: 32,
+                          borderRadius: 4,
+                        ),
+                      ),
+                    ),
+                if (otherRecipientIds.length > 3)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4),
+                    child: Text(
+                      '+${otherRecipientIds.length - 3}',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                  ),
+              ],
+            ),
+          );
         }
 
       case KeywordSearchNarrow():
