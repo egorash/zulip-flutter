@@ -59,7 +59,7 @@ class MessageItem extends StatelessWidget {
     }
 
     return StickyHeaderItem(
-      allowOverflow: !item.isLastInBlock,
+      allowOverflow: true,
       header: header,
       child: child,
     );

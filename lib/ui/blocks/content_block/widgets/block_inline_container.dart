@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -12,12 +13,18 @@ class BlockInlineContainer extends StatefulWidget {
     required this.style,
     required this.nodes,
     this.textAlign,
+    this.maxLines,
+    this.textOverflow,
+    this.isAnswer = false,
   });
 
   final List<LinkNode> links;
   final TextStyle style;
   final List<InlineContentNode> nodes;
   final TextAlign? textAlign;
+  final int? maxLines;
+  final bool isAnswer;
+  final TextOverflow? textOverflow;
 
   @override
   State<BlockInlineContainer> createState() => _BlockInlineContainerState();
@@ -49,8 +56,18 @@ class _BlockInlineContainerState extends State<BlockInlineContainer> {
   @override
   void initState() {
     nodes = widget.nodes;
-    if (nodes.whereType<UserMentionNode>().toList().isNotEmpty) {
-      nodes = [nodes.first];
+    final isAnswer =
+        widget.isAnswer ||
+        ((((widget.nodes.firstWhereOrNull((e) => e is LinkNode)) as LinkNode?)
+                ?.url
+                .contains('narrow')) ??
+            false);
+
+    if (isAnswer) {
+      if (nodes.whereType<UserMentionNode>().toList().isNotEmpty) {
+        nodes = [nodes.first];
+        nodes.add(widget.nodes.firstWhere((e) => e is LinkNode));
+      }
     }
     super.initState();
     _prepareRecognizers();
@@ -79,6 +96,8 @@ class _BlockInlineContainerState extends State<BlockInlineContainer> {
       style: widget.style,
       nodes: nodes,
       textAlign: widget.textAlign,
+      maxLines: widget.maxLines,
+      textOverflow: widget.textOverflow,
     );
   }
 }

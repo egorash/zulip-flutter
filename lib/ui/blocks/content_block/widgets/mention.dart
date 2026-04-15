@@ -13,10 +13,12 @@ class Mention extends StatelessWidget {
     super.key,
     required this.ambientTextStyle,
     required this.node,
+    this.isAnswer = false,
   });
 
   final TextStyle ambientTextStyle;
   final MentionNode node;
+  final bool isAnswer;
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +48,7 @@ class Mention extends StatelessWidget {
         if (user case User(:final fullName)) {
           nodes = [TextNode(node.isSilent ? fullName : '@$fullName')];
         }
+
       case UserMentionNode(userId: null):
       case WildcardMentionNode():
     }
@@ -57,23 +60,31 @@ class Mention extends StatelessWidget {
     // };
 
     return Container(
-      margin: const EdgeInsetsDirectional.only(start: 10),
-      padding: const EdgeInsetsDirectional.only(start: 5),
-      alignment: Alignment.centerLeft,
-      decoration: BoxDecoration(
-        border: BorderDirectional(
-          start: BorderSide(
-            width: 5,
-            // Web has the same color in light and dark mode.
-            color: const HSLColor.fromAHSL(1, 0, 0, 0.87).toColor(),
-          ),
-        ),
-      ),
+      margin: isAnswer && node.isSilent
+          ? const EdgeInsetsDirectional.only(start: 10)
+          : null,
+      padding: isAnswer && node.isSilent
+          ? const EdgeInsetsDirectional.only(start: 5)
+          : null,
+      //alignment: Alignment.centerLeft,
+      decoration: isAnswer && node.isSilent
+          ? BoxDecoration(
+              border: BorderDirectional(
+                start: BorderSide(
+                  width: 5,
+                  // Web has the same color in light and dark mode.
+                  color: const HSLColor.fromAHSL(1, 0, 0, 0.87).toColor(),
+                ),
+              ),
+            )
+          : null,
       child: Container(
-        decoration: BoxDecoration(
-          color: Colors.lightBlue,
-          borderRadius: const BorderRadius.all(Radius.circular(3)),
-        ),
+        decoration: isAnswer && node.isSilent
+            ? BoxDecoration(
+                color: Colors.lightBlue,
+                borderRadius: const BorderRadius.all(Radius.circular(3)),
+              )
+            : null,
 
         padding: const EdgeInsets.symmetric(horizontal: 0.2 * kBaseFontSize),
         child: InlineContent(

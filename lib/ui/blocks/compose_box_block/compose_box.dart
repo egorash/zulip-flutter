@@ -164,6 +164,25 @@ enum ContentValidationError {
   }
 }
 
+class AnswerMessage {
+  AnswerMessage();
+
+  String replyText = '';
+
+  String get name => replyText.split('**')[1].split('|').first;
+
+  String get message =>
+      replyText.split('quote').last.replaceAll('```', '').trim();
+
+  bool get isEmpty => replyText.isEmpty;
+
+  bool get isNotEmpty => replyText.isNotEmpty;
+
+  void clear() {
+    replyText = '';
+  }
+}
+
 class ComposeContentController
     extends ComposeController<ContentValidationError> {
   ComposeContentController({
@@ -176,6 +195,7 @@ class ComposeContentController
 
   /// Whether to produce [ContentValidationError.empty].
   final bool requireNotEmpty;
+  AnswerMessage answerMessage = AnswerMessage();
 
   // TODO(#1237) use `max_message_length` instead of hardcoded limit
   @override
@@ -186,6 +206,11 @@ class ComposeContentController
 
   final Map<int, ({int messageId, String placeholder})> _quoteAndReplies = {};
   final Map<int, ({String filename, String placeholder})> _uploads = {};
+
+  void cancelAnswerMessage() {
+    answerMessage.clear();
+    notifyListeners();
+  }
 
   /// A probably-reasonable place to insert Markdown, such as for a file upload.
   ///
@@ -258,7 +283,9 @@ class ComposeContentController
     );
     _quoteAndReplies[tag] = (messageId: message.id, placeholder: placeholder);
     notifyListeners(); // _quoteAndReplies change could affect validationErrors
-    insertPadded(placeholder);
+    //insertPadded(placeholder);
+
+   //answerMessage.replyText = placeholder;
     return tag;
   }
 
@@ -274,19 +301,20 @@ class ComposeContentController
   }) {
     final val = _quoteAndReplies[tag];
     assert(val != null, 'registerQuoteAndReplyEnd called twice for same tag');
-    final int startIndex = text.indexOf(val!.placeholder);
+    //final int startIndex = text.indexOf(val!.placeholder);
     final replacementText = rawContent == null
         ? ''
         : quoteAndReply(store, message: message, rawContent: rawContent);
-    if (startIndex >= 0) {
-      value = value.replaced(
-        TextRange(start: startIndex, end: startIndex + val.placeholder.length),
-        replacementText,
-      );
-    } else if (replacementText != '') {
-      // insertPadded requires non-empty string
-      insertPadded(replacementText);
-    }
+    // if (startIndex >= 0) {
+    //   value = value.replaced(
+    //     TextRange(start: startIndex, end: startIndex + val.placeholder.length),
+    //     replacementText,
+    //   );
+    // } else if (replacementText != '') {
+    // insertPadded requires non-empty string
+    //insertPadded(replacementText);
+    answerMessage.replyText = replacementText;
+    //}
     _quoteAndReplies.remove(tag);
     notifyListeners(); // _quoteAndReplies change could affect validationErrors
   }

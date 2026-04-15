@@ -29,6 +29,7 @@ import '../values/icons.dart';
 /// a hero animation goes from the original view of the image
 /// to the version in the lightbox,
 /// and back to the original upon exiting the lightbox.
+// ignore: unused_element
 class _LightboxHeroTag {
   _LightboxHeroTag({required this.messageImageContext, required this.src});
 
@@ -75,21 +76,7 @@ class LightboxHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Hero(
-      tag: _LightboxHeroTag(messageImageContext: messageImageContext, src: src),
-      flightShuttleBuilder:
-          (
-            BuildContext flightContext,
-            Animation<double> animation,
-            HeroFlightDirection flightDirection,
-            BuildContext fromHeroContext,
-            BuildContext toHeroContext,
-          ) {
-            // For a RealmContentNetworkImage shown during flight.
-            return child;
-          },
-      child: child,
-    );
+    return child;
   }
 }
 

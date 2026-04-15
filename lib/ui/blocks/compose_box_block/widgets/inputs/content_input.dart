@@ -162,7 +162,12 @@ class _ContentInputState extends State<ContentInput> {
     }
 
     final destination = widget.getDestination();
-    final content = controller.content.textNormalized;
+    var content = controller.content.textNormalized;
+    if (controller.content.answerMessage.isNotEmpty) {
+      content = controller.content.answerMessage.replyText + content;
+    }
+
+    controller.content.cancelAnswerMessage();
 
     controller.content.clear();
 
@@ -368,7 +373,7 @@ class _ContentInputState extends State<ContentInput> {
                         Icons.file_present_outlined,
                         color: designVariables.foreground.withFadedAlpha(0.5),
                       ),
-                      title: Text('Файл'),
+                      title: Text('Файл', style: TextStyle(fontSize: 16)),
                       onPressed: () {
                         _handleAddIconPress(
                           context,
@@ -381,7 +386,7 @@ class _ContentInputState extends State<ContentInput> {
                         ZulipIcons.image,
                         color: designVariables.foreground.withFadedAlpha(0.5),
                       ),
-                      title: Text('Фото или видео'),
+                      title: Text('Медиа', style: TextStyle(fontSize: 16)),
                       onPressed: () {
                         _handleAddIconPress(
                           context,
@@ -395,7 +400,7 @@ class _ContentInputState extends State<ContentInput> {
                           ZulipIcons.camera,
                           color: designVariables.foreground.withFadedAlpha(0.5),
                         ),
-                        title: Text('Камера'),
+                        title: Text('Камера', style: TextStyle(fontSize: 16)),
                         onPressed: () {
                           _handleAddIconPress(
                             context,

@@ -25,11 +25,14 @@ class Reactions {
 
   factory Reactions(List<Reaction> unaggregated) {
     final byReaction = LinkedHashMap<Reaction, ReactionWithVotes>(
-      equals: (a, b) => a.reactionType == b.reactionType && a.emojiCode == b.emojiCode,
+      equals: (a, b) =>
+          a.reactionType == b.reactionType && a.emojiCode == b.emojiCode,
       hashCode: (r) => Object.hash(r.reactionType, r.emojiCode),
     );
     for (final reaction in unaggregated) {
-      final current = byReaction[reaction] ??= ReactionWithVotes.empty(reaction);
+      final current = byReaction[reaction] ??= ReactionWithVotes.empty(
+        reaction,
+      );
       current.userIds.add(reaction.userId);
     }
 
@@ -51,19 +54,24 @@ class Reactions {
   List<dynamic> toJson() {
     final result = <Reaction>[];
     for (final reactionWithVotes in aggregated) {
-      result.addAll(reactionWithVotes.userIds.map((userId) => Reaction(
-        reactionType: reactionWithVotes.reactionType,
-        emojiCode: reactionWithVotes.emojiCode,
-        emojiName: reactionWithVotes.emojiName,
-        userId: userId,
-      )));
+      result.addAll(
+        reactionWithVotes.userIds.map(
+          (userId) => Reaction(
+            reactionType: reactionWithVotes.reactionType,
+            emojiCode: reactionWithVotes.emojiCode,
+            emojiName: reactionWithVotes.emojiName,
+            userId: userId,
+          ),
+        ),
+      );
     }
     return result;
   }
 
   void add(Reaction reaction) {
     final currentIndex = aggregated.indexWhere((r) {
-      return r.reactionType == reaction.reactionType && r.emojiCode == reaction.emojiCode;
+      return r.reactionType == reaction.reactionType &&
+          r.emojiCode == reaction.emojiCode;
     });
     if (currentIndex == -1) {
       final newItem = ReactionWithVotes.empty(reaction);
@@ -74,10 +82,12 @@ class Reactions {
       current.userIds.add(reaction.userId);
 
       // Reposition `current` in list to keep it sorted by number of votes
-      final newIndex = 1 + aggregated.lastIndexWhere(
-        (item) => item.userIds.length >= current.userIds.length,
-        currentIndex - 1,
-      );
+      final newIndex =
+          1 +
+          aggregated.lastIndexWhere(
+            (item) => item.userIds.length >= current.userIds.length,
+            currentIndex - 1,
+          );
       if (newIndex < currentIndex) {
         aggregated
           ..setRange(newIndex + 1, currentIndex + 1, aggregated, newIndex)
@@ -95,7 +105,8 @@ class Reactions {
     final currentIndex = aggregated.indexWhere((r) {
       return r.reactionType == reactionType && r.emojiCode == emojiCode;
     });
-    if (currentIndex == -1) { // TODO(log)
+    if (currentIndex == -1) {
+      // TODO(log)
       return;
     }
     final current = aggregated[currentIndex];
@@ -133,11 +144,12 @@ class ReactionWithVotes {
 
   ReactionWithVotes.empty(Reaction reaction)
     : reactionType = reaction.reactionType,
-      emojiCode    = reaction.emojiCode,
-      emojiName    = reaction.emojiName;
+      emojiCode = reaction.emojiCode,
+      emojiName = reaction.emojiName;
 
   @override
-  String toString() => 'ReactionWithVotes(reactionType: $reactionType, emojiCode: $emojiCode, emojiName: $emojiName, userIds: $userIds)';
+  String toString() =>
+      'ReactionWithVotes(reactionType: $reactionType, emojiCode: $emojiCode, emojiName: $emojiName, userIds: $userIds)';
 }
 
 /// A reaction object found inside message objects in the Zulip API.
@@ -159,12 +171,13 @@ class Reaction {
   });
 
   factory Reaction.fromJson(Map<String, dynamic> json) =>
-    _$ReactionFromJson(json);
+      _$ReactionFromJson(json);
 
   Map<String, dynamic> toJson() => _$ReactionToJson(this);
 
   @override
-  String toString() => 'Reaction(emojiName: $emojiName, emojiCode: $emojiCode, reactionType: $reactionType, userId: $userId)';
+  String toString() =>
+      'Reaction(emojiName: $emojiName, emojiCode: $emojiCode, reactionType: $reactionType, userId: $userId)';
 }
 
 /// As in [Reaction.reactionType].
@@ -178,6 +191,22 @@ enum ReactionType {
 
   static ReactionType fromApiValue(String value) => _byApiValue[value]!;
 
-  static final _byApiValue = _$ReactionTypeEnumMap
-    .map((key, value) => MapEntry(value, key));
+  static final _byApiValue = _$ReactionTypeEnumMap.map(
+    (key, value) => MapEntry(value, key),
+  );
+}
+
+enum EmojiCategoryType {
+  popular,
+  smileys,
+  people,
+  animals,
+  food,
+  activities,
+  travel,
+  objects,
+  symbols,
+  flags,
+  realm,
+  zulipExtra,
 }

@@ -58,6 +58,9 @@ Widget contentBuildBlockInlineContainer({
   required TextStyle style,
   required BlockInlineContainerNode node,
   TextAlign? textAlign,
+  int? maxLines,
+  TextOverflow? textOverflow,
+  bool isAnswer = false,
 }) {
   if (node.links == null) {
     return InlineContent(
@@ -66,6 +69,9 @@ Widget contentBuildBlockInlineContainer({
       style: style,
       nodes: node.nodes,
       textAlign: textAlign,
+      maxLines: maxLines,
+      textOverflow: textOverflow,
+      isAnswer: isAnswer,
     );
   }
   return BlockInlineContainer(
@@ -73,6 +79,7 @@ Widget contentBuildBlockInlineContainer({
     style: style,
     nodes: node.nodes,
     textAlign: textAlign,
+    isAnswer: isAnswer,
   );
 }
 

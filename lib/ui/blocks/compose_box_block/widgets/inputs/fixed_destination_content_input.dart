@@ -62,14 +62,104 @@ class FixedDestinationContentInput extends StatelessWidget {
     return TypingNotifier(
       destination: narrow,
       controller: controller,
-      child: ContentInput(
-        narrow: narrow,
-        showPrefix: true,
-        controller: controller,
-        hintText: _hintText(context),
-        getDestination: getDestination,
-        sendButton: sendButton,
+      child: Column(
+        children: [
+          AnswerMessageBlock(controller: controller),
+          ContentInput(
+            narrow: narrow,
+            showPrefix: true,
+            controller: controller,
+            hintText: _hintText(context),
+            getDestination: getDestination,
+            sendButton: sendButton,
+          ),
+        ],
       ),
     );
+  }
+}
+
+class AnswerMessageBlock extends StatefulWidget {
+  final FixedDestinationComposeBoxController controller;
+  const AnswerMessageBlock({super.key, required this.controller});
+
+  @override
+  State<AnswerMessageBlock> createState() => _AnswerMessageBlockState();
+}
+
+class _AnswerMessageBlockState extends State<AnswerMessageBlock> {
+  @override
+  void initState() {
+    widget.controller.content.addListener(_listenEvent);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.controller.content.removeListener(_listenEvent);
+    super.dispose();
+  }
+
+  void _listenEvent() {
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final answerMessage = widget.controller.content.answerMessage;
+
+    if (answerMessage.isNotEmpty) {
+      return Container(
+        alignment: Alignment.centerLeft,
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(color: Colors.black),
+        child: Row(
+          spacing: 8,
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  bottomLeft: Radius.circular(12),
+                ),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 6),
+                  decoration: BoxDecoration(
+                    //color: Colors.grey.withValues(alpha: 0.2),
+                    border: Border(
+                      left: BorderSide(width: 5, color: Colors.white),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    spacing: 0,
+                    children: [
+                      Text(
+                        'В ответ ${answerMessage.name}',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      Text(
+                        answerMessage.message,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                widget.controller.content.cancelAnswerMessage();
+              },
+              child: Icon(Icons.close, color: Colors.white),
+            ),
+          ],
+        ),
+      );
+    } else {
+      return SizedBox();
+    }
   }
 }

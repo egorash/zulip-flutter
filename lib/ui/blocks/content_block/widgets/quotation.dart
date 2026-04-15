@@ -30,11 +30,18 @@ class Quotation extends StatelessWidget {
             ..removeWhere(
               (n) =>
                   n is QuotationNode ||
-                  n is LinkNode ||
                   (n is ParagraphNode &&
-                      n.nodes.whereType<UserMentionNode>().toList().isNotEmpty),
+                      n.nodes
+                          .where(
+                            (e) => e is LinkNode && e.url.contains('narrow'),
+                          )
+                          .toList()
+                          .isNotEmpty),
             ),
           isMe: isMe,
+          maxLines: 2,
+          textOverflow: TextOverflow.ellipsis,
+          isAnswer: true,
         ),
       ),
     );

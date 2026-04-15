@@ -139,6 +139,8 @@ const kZulipBrandColor = Color.fromRGBO(0x64, 0x92, 0xfe, 1);
 class DesignVariables extends ThemeExtension<DesignVariables> {
   static final light = DesignVariables._(
     background: const Color(0xffffffff),
+    myMessageBackground: Color.fromRGBO(79, 148, 217, 1),
+    otherMessageBackground: Color.fromRGBO(151, 151, 151, 1),
     bannerBgIntDanger: const Color(0xfff2e4e4),
     bannerBgIntInfo: const Color(0xffddecf6),
     bannerBgIntWarning: const Color(0xfffaf5dc),
@@ -260,6 +262,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
 
   static final dark = DesignVariables._(
     background: const Color(0xff000000),
+    myMessageBackground: Color.fromRGBO(62, 106, 151, 1),
+    otherMessageBackground: Color.fromRGBO(33, 48, 64, 1),
     bannerBgIntDanger: const Color(0xff461616),
     bannerBgIntInfo: const Color(0xff00253d),
     bannerBgIntWarning: const Color(0xff332b00),
@@ -394,6 +398,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
 
   DesignVariables._({
     required this.background,
+    required this.myMessageBackground,
+    required this.otherMessageBackground,
     required this.bannerBgIntDanger,
     required this.bannerBgIntInfo,
     required this.bannerBgIntWarning,
@@ -498,6 +504,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
 
   // Named variables from the Figma, but in camelCase.
   final Color background;
+  final Color myMessageBackground;
+  final Color otherMessageBackground;
   final Color bannerBgIntDanger;
   final Color bannerBgIntInfo;
   final Color bannerBgIntWarning;
@@ -598,6 +606,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   @override
   DesignVariables copyWith({
     Color? background,
+    Color? myMessageBackground,
+    Color? otherMessageBackground,
     Color? bannerBgIntDanger,
     Color? bannerBgIntInfo,
     Color? bannerBgIntWarning,
@@ -691,6 +701,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
   }) {
     return DesignVariables._(
       background: background ?? this.background,
+      myMessageBackground: myMessageBackground ?? this.myMessageBackground,
+      otherMessageBackground: otherMessageBackground ?? this.otherMessageBackground,
       bannerBgIntDanger: bannerBgIntDanger ?? this.bannerBgIntDanger,
       bannerBgIntInfo: bannerBgIntInfo ?? this.bannerBgIntInfo,
       bannerBgIntWarning: bannerBgIntWarning ?? this.bannerBgIntWarning,
@@ -816,6 +828,8 @@ class DesignVariables extends ThemeExtension<DesignVariables> {
     }
     return DesignVariables._(
       background: Color.lerp(background, other.background, t)!,
+      myMessageBackground:Color.lerp(myMessageBackground, other.myMessageBackground, t)!,
+      otherMessageBackground: Color.lerp(otherMessageBackground, other.otherMessageBackground, t)!,
       bannerBgIntDanger: Color.lerp(
         bannerBgIntDanger,
         other.bannerBgIntDanger,

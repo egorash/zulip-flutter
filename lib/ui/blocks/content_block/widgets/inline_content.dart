@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -6,6 +7,7 @@ import '../../../themes/content_theme.dart';
 import '../../../values/constants.dart';
 import '../../../values/text.dart';
 import '../../../widgets/katex.dart';
+import '../../message_list_block/widgets/message_list/message_list.dart';
 import 'global_time.dart';
 import 'helpers.dart';
 import 'inline_image.dart';
@@ -48,6 +50,9 @@ class InlineContent extends StatelessWidget {
     required this.style,
     required this.nodes,
     this.textAlign,
+    this.maxLines,
+    this.textOverflow,
+    this.isAnswer = false,
   }) {
     assert(style.fontSize != null);
     assert(
@@ -74,12 +79,20 @@ class InlineContent extends StatelessWidget {
   final TextAlign? textAlign;
 
   final List<InlineContentNode> nodes;
+  final int? maxLines;
+  final bool isAnswer;
+  final TextOverflow? textOverflow;
 
   late final _InlineContentBuilder _builder;
 
   @override
   Widget build(BuildContext context) {
-    return Text.rich(_builder.build(context), textAlign: textAlign);
+    return Text.rich(
+      _builder.build(context),
+      textAlign: textAlign,
+      maxLines: maxLines,
+      overflow: textOverflow,
+    );
   }
 }
 
@@ -93,7 +106,7 @@ class _InlineContentBuilder {
     _context = context;
     assert(_recognizer == widget.recognizer);
     assert(_recognizerStack == null || _recognizerStack!.isEmpty);
-    final result = _buildNodes(widget.nodes, style: widget.style);
+    final result = _buildNodes(widget.nodes, context, style: widget.style);
     assert(identical(_context, context));
     _context = null;
     assert(_recognizer == widget.recognizer);
@@ -122,16 +135,19 @@ class _InlineContentBuilder {
   }
 
   InlineSpan _buildNodes(
-    List<InlineContentNode> nodes, {
+    List<InlineContentNode> nodes,
+    BuildContext context, {
     required TextStyle? style,
   }) {
     return TextSpan(
       style: style,
-      children: nodes.map(_buildNode).toList(growable: false),
+      children: nodes
+          .map((e) => _buildNode(e, context))
+          .toList(growable: false),
     );
   }
 
-  InlineSpan _buildNode(InlineContentNode node) {
+  InlineSpan _buildNode(InlineContentNode node, BuildContext context) {
     switch (node) {
       case TextNode():
         return TextSpan(text: node.text, recognizer: _recognizer);
@@ -144,42 +160,99 @@ class _InlineContentBuilder {
       case StrongNode():
         return _buildNodes(
           node.nodes,
+          context,
           style: bolderWghtTextStyle(widget.style, by: 200),
         );
 
       case DeletedNode():
         return _buildNodes(
           node.nodes,
+          context,
           style: const TextStyle(decoration: TextDecoration.lineThrough),
         );
 
       case EmphasisNode():
         return _buildNodes(
           node.nodes,
+          context,
           style: const TextStyle(fontStyle: FontStyle.italic),
         );
 
       case LinkNode():
         if (_isImageUrl(node.url)) {
-          return const TextSpan(text: '');
+          return const TextSpan(text: '*изображение*');
         }
         final recognizer = widget.linkRecognizers?[node];
         assert(recognizer != null);
         _pushRecognizer(recognizer);
-        final result = _buildNodes(
-          node.nodes,
-          style: TextStyle(color: ContentTheme.of(_context!).colorLink),
-        );
+        InlineSpan result;
+        if (node.url.contains('narrow')) {
+          result = TextSpan(
+            text: '',
+            style: TextStyle(color: ContentTheme.of(_context!).colorLink),
+            recognizer: TapGestureRecognizer()..onTap = () => {},
+          );
+        } else {
+          result = _buildNodes(
+            node.nodes,
+            context,
+            style: TextStyle(color: ContentTheme.of(_context!).colorLink),
+          );
+        }
         _popRecognizer();
         return result;
 
       case InlineCodeNode():
-        return _buildInlineCode(node);
+        return _buildInlineCode(node, context);
 
       case MentionNode():
-        return WidgetSpan(
-          alignment: PlaceholderAlignment.middle,
-          child: Mention(ambientTextStyle: widget.style, node: node),
+        final link =
+            widget.nodes.firstWhereOrNull((e) => e is LinkNode) as LinkNode?;
+        final isAnswer = (link?.url.contains('narrow') ?? false);
+        return TextSpan(
+          children: [
+            WidgetSpan(
+              alignment: PlaceholderAlignment.baseline,
+              baseline: TextBaseline.alphabetic,
+              child: isAnswer
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Mention(
+                          ambientTextStyle: widget.style,
+                          node: node,
+                          isAnswer: isAnswer,
+                        ),
+                        if ((widget.nodes.firstWhereOrNull(
+                              (e) => e is LinkNode,
+                            )) !=
+                            null)
+                          Text.rich(
+                            TextSpan(
+                              text: ' Перейти',
+                              style: TextStyle(
+                                color: ContentTheme.of(_context!).colorLink,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  final url =
+                                      (widget.nodes.firstWhereOrNull(
+                                                (e) => e is LinkNode,
+                                              )
+                                              as LinkNode?)
+                                          ?.url;
+                                  final id = url!.split('/').last;
+                                  MessageList.ancestorOf(
+                                    context,
+                                  ).scrollToMessage(id);
+                                },
+                            ),
+                          ),
+                      ],
+                    )
+                  : Mention(ambientTextStyle: widget.style, node: node),
+            ),
+          ],
         );
 
       case UnicodeEmojiNode():
@@ -227,7 +300,7 @@ class _InlineContentBuilder {
     }
   }
 
-  InlineSpan _buildInlineCode(InlineCodeNode node) {
+  InlineSpan _buildInlineCode(InlineCodeNode node, BuildContext context) {
     // TODO `code` elements: border, padding -- seems hard
     //
     // Hard because this is an inline span, which we want to be able to break
@@ -256,6 +329,7 @@ class _InlineContentBuilder {
         fontSize: widget.style.fontSize! * kInlineCodeFontSizeFactor,
       ),
       node.nodes,
+      context,
     );
 
     // Another fun solution -- we can in fact have a border!  Like so:
